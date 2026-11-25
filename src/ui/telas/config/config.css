@@ -1,0 +1,80 @@
+/* Config + BackupNag — Liquid Glass. Só tokens de src/ui/glass/tokens.css. */
+.cfg {
+  display: grid;
+  gap: 14px;
+}
+.dsec.cfg-card {
+  position: relative;
+  margin: 0;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+.dsec.cfg-card h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.cfg-pix {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.cfg-pix .field {
+  min-width: 0;
+  background: var(--glass-bg-thin);
+  border-radius: var(--radius-sm);
+}
+.cfg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cfg-actions .btn {
+  border-radius: var(--radius-pill);
+  transition: transform 0.35s var(--ease-spring);
+}
+.cfg-actions .btn:active {
+  transform: scale(0.96);
+}
+.cfg-card .help {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 480px) {
+  .cfg-card {
+    padding: 14px;
+  }
+  .cfg-actions .btn {
+    flex: 1 1 calc(50% - 10px);
+  }
+}
+
+/* BackupNag */
+.notice.info.cfg-nag {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+.notice.cfg-nag .grow {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.notice.cfg-nag .btn {
+  border-radius: var(--radius-pill);
+}

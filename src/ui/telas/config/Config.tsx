@@ -8,6 +8,7 @@ import type { ParcelasMode } from '../../../lib/backup';
 import type { ImportOutcome } from '../../../data/repo';
 import type { Env } from '../env';
 import { copyText, downloadText } from '../util';
+import './config.css';
 
 /** O que a tela de configurações precisa do repositório (vem de useRateio().repo / reload). */
 export interface BackupApi {
@@ -56,7 +57,7 @@ export function BackupNag({ env }: { env: Env }) {
     setCopiado(true);
   }
   return (
-    <div className="notice info">
+    <div className="notice info cfg-nag">
       <span className="grow">
         {dias === null ? (
           <>
@@ -183,16 +184,10 @@ export function Config({ env, backup }: Props) {
   }
 
   return (
-    <div>
-      <div className="dsec">
+    <div className="cfg">
+      <div className="dsec cfg-card">
         <h4>Chave PIX nas mensagens</h4>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
-            gap: 8,
-          }}
-        >
+        <div className="cfg-pix">
           <input
             className="field"
             maxLength={77}
@@ -230,9 +225,9 @@ export function Config({ env, backup }: Props) {
         </p>
       </div>
 
-      <div className="dsec">
+      <div className="dsec cfg-card">
         <h4>Backup</h4>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="cfg-actions">
           <button className="btn small primary" onClick={() => void copiar()}>
             {copiado ? 'Copiado ✓ — cole no WhatsApp' : 'Copiar backup (texto)'}
           </button>
