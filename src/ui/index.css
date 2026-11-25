@@ -26,29 +26,6 @@
   --z-toast: 40;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: oklch(0.17 0.008 165);
-    --surface: oklch(0.215 0.01 165);
-    --surface-2: oklch(0.25 0.011 165);
-    --ink: oklch(0.95 0.006 165);
-    --ink-2: oklch(0.76 0.012 165);
-    --line: oklch(0.31 0.012 165);
-    --line-strong: oklch(0.4 0.014 165);
-    --accent: oklch(0.74 0.13 158);
-    --accent-hover: oklch(0.8 0.12 158);
-    --accent-ink: oklch(0.8 0.12 158);
-    --accent-soft: oklch(0.3 0.05 158);
-    --on-accent: oklch(0.18 0.02 158);
-    --warn: oklch(0.82 0.11 75);
-    --warn-soft: oklch(0.3 0.05 70);
-    --info: oklch(0.8 0.09 255);
-    --info-soft: oklch(0.29 0.04 255);
-    --danger: oklch(0.76 0.13 25);
-    --danger-soft: oklch(0.3 0.06 25);
-    --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 6px 20px oklch(0 0 0 / 0.25);
-  }
-}
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1003,15 +980,6 @@ details.ctable summary {
 }
 .chart .mk {
   fill: var(--mc);
-}
-@media (prefers-color-scheme: dark) {
-  /* cores das pessoas/tags são escolhidas pelo usuário: no escuro, só a luminosidade é ajustada (0,60–0,66) para manter contraste e distinção */
-  .chart .mk {
-    fill: oklch(from var(--mc) clamp(0.6, l, 0.66) c h);
-  }
-  .legend i {
-    background: oklch(from var(--mc) clamp(0.6, l, 0.66) c h);
-  }
 }
 .tscroll {
   overflow-x: auto;

@@ -47,10 +47,4 @@ test.describe('Relatórios e gráfico (dados sintéticos)', () => {
       page.getByRole('img', { name: 'Valor comprometido por mês, por pessoa' }),
     ).toBeVisible();
   });
-
-  test('tema escuro continua legível', async ({ page }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
-    await page.goto(URL);
-    await expect(page.getByTestId('relatorios').locator('.chart svg')).toBeVisible();
-  });
 });
