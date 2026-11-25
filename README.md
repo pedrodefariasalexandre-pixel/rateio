@@ -29,6 +29,19 @@ Sem `.env.local` o app abre, mas sem banco.
 | `npm run format`    | formata com Prettier                         |
 | `npm run typecheck` | só a checagem de tipos                       |
 | `npm run check`     | lint + formatação + tipos + testes (o do CI) |
+| `npm run test:e2e`  | E2E no navegador (Playwright)                |
+| `npm run test:db`   | migrations + testes SQL num Postgres local   |
+
+## Testes automáticos (GitHub Actions)
+
+Rodam em todo push, de qualquer branch, e em todo PR:
+
+- **lint, typecheck, test, build**: Vitest e build. É o check exigido na `main`.
+- **banco**: Postgres 16 limpo, stub do Supabase, todas as migrations e a bateria SQL (RLS, PIN, import/export de backup). Usa um backup sintético fixo em `supabase/tests/fixtures/`.
+- **e2e**: Playwright (desktop e iPhone) contra o build local.
+- **e2e no preview**: o mesmo E2E contra a URL do preview da Vercel, quando a integração Git da Vercel estiver ligada.
+
+Nenhum segredo fica no repositório.
 
 ## Estrutura
 
