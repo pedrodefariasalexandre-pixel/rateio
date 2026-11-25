@@ -6,7 +6,6 @@ import { BackupNag, Config } from './config/Config';
 import type { Env } from './env';
 import { ProjecaoBox } from './grafico/ProjecaoBox';
 import { Historico } from './historico/Historico';
-import { PessoasMemoria } from './pessoas';
 import { Relatorios } from './relatorios/Relatorios';
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -48,9 +47,4 @@ export function ConfigTela() {
 
 export function BackupNagTopo() {
   return <BackupNag env={useEnv()} />;
-}
-
-export function PessoasTela() {
-  const { ctx, commit } = useRateio();
-  return <PessoasMemoria ctx={ctx} onChange={() => void commit(() => {}, { undo: false })} />;
 }

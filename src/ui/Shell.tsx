@@ -2,13 +2,13 @@
 import { useEffect, useState } from 'react';
 import { openBalances } from '../lib/receivables';
 import { useRateio } from './AppContext';
+import { PessoasMemoriaAba } from './telas';
 import { FaturaFlow, STEPS, type Step } from './screens/main/FaturaFlow';
 import {
   BackupNagTopo,
   CobrancasTela,
   ConfigTela,
   HistoricoTela,
-  PessoasTela,
   RelatoriosTela,
 } from './telas/adapters';
 
@@ -73,11 +73,7 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
               >
                 {icon}
                 <span className="lbl" aria-hidden="true">
-                  {t === 'Pessoas'
-                    ? 'Pessoas & memória'
-                    : t === 'Cobranças'
-                      ? 'Cobranças fixas'
-                      : t}
+                  {t}
                 </span>
                 {t === 'Histórico' && open > 0 && <span className="nbadge">{open}</span>}
               </button>
@@ -102,7 +98,7 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         ) : tab === 'Cobranças' ? (
           <CobrancasTela />
         ) : tab === 'Pessoas' ? (
-          <PessoasTela />
+          <PessoasMemoriaAba />
         ) : (
           <ConfigTela />
         )}
