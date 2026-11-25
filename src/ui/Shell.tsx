@@ -1,5 +1,6 @@
 /** Shell do app: topbar do v3 (logo, etapas da fatura e botões de ícone) + a tela da vez. */
 import { useEffect, useState } from 'react';
+import './shell.css';
 import { openBalances } from '../lib/receivables';
 import { useRateio } from './AppContext';
 import { PessoasMemoriaAba } from './telas';
