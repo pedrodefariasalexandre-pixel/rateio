@@ -83,3 +83,72 @@
     transform: none;
   }
 }
+
+/* Crítica de UI — alvos de toque ≥44px, alinhamento e rolagem. */
+#sReview .btn,
+#sReview .chip,
+#sReview .seg button,
+#sReview .addtag,
+#sReview .split .presets button,
+#sReview .linkbtn,
+#footer .btn {
+  min-height: 44px;
+}
+#sReview .addtag {
+  min-width: 44px;
+  padding-inline: 14px;
+}
+#sReview .seg button {
+  padding-inline: 12px;
+}
+#sReview .comp input,
+#sReview .search input,
+#sReview .tools .field,
+#sReview .split input,
+#sReview .split select {
+  min-height: 44px;
+}
+#sReview .row .toggle {
+  min-height: 44px;
+  gap: 8px;
+}
+#sReview .row .toggle input,
+#sReview .row input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#sReview .rhead {
+  align-items: center;
+}
+#sReview .comp {
+  margin-left: 0 !important;
+  flex: 1 1 200px;
+  justify-content: space-between;
+}
+#sReview .comp input {
+  flex: 1;
+  min-width: 0;
+  max-width: 220px;
+}
+#sReview .tools .seg {
+  max-width: 100%;
+}
+#sReview .split .presets {
+  scroll-snap-type: x proximity;
+  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+}
+#sReview .split .presets button {
+  scroll-snap-align: start;
+}
+#sReview .row-ctrl .ctrl-right {
+  gap: 4px 10px;
+}
+@media (max-width: 600px) {
+  #sReview .search {
+    flex-basis: 100%;
+  }
+  #sReview .tools .field {
+    flex: 1;
+  }
+}

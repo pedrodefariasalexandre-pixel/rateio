@@ -36,3 +36,11 @@
     transform: none;
   }
 }
+
+/* Crítica de UI: respiro e hierarquia no mobile */
+#sImport #dropzone {
+  min-height: 176px;
+}
+#sImport .privacy {
+  line-height: 1.45;
+}
