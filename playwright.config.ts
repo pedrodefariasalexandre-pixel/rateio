@@ -26,10 +26,19 @@ export default defineConfig({
   ],
   webServer: baseURL
     ? undefined
-    : {
-        command: 'npm run build && npm run preview -- --port 4173 --strictPort',
-        url: 'http://localhost:4173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+    : [
+        {
+          command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+          url: 'http://localhost:4173',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+        {
+          // servidor de desenvolvimento só para os harness de tela (e2e/harness/*.html)
+          command: 'npm run dev -- --port 4174 --strictPort',
+          url: 'http://localhost:4174',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });
