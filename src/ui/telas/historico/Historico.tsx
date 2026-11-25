@@ -15,6 +15,7 @@ import { latestClosed, removeMonth, undoClose } from '../../../lib/closeMonth';
 import { safeColor, who } from '../../../lib/state';
 import type { Month } from '../../../lib/types';
 import type { Env } from '../env';
+import './historico.css';
 import { copyText, downloadText } from '../util';
 
 interface Props {
@@ -156,7 +157,7 @@ export function Historico({ env, renderProjecao }: Props) {
   const latest = latestClosed(ctx);
 
   return (
-    <div>
+    <div className="tela-historico">
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
         <button className="btn small" onClick={csv}>
           Exportar histórico (CSV)

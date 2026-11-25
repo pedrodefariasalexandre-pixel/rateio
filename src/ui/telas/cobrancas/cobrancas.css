@@ -1,0 +1,27 @@
+/* Cobranças fixas — Liquid Glass (só tokens) */
+.tela-cobrancas .crow {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.tela-cobrancas .crow .l1 {
+  margin-bottom: 10px;
+}
+.tela-cobrancas .iconbtn {
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+}
+.tela-cobrancas .empty {
+  background: var(--glass-bg-thin);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 12px;
+}
