@@ -329,3 +329,27 @@
     transition: none;
   }
 }
+
+/* crítica de UI: alvos de toque ≥44px e rótulos legíveis no celular */
+.rg .seg button {
+  min-height: 44px;
+  padding: 6px 16px;
+}
+.rg .field {
+  min-height: 44px;
+}
+.rg details.more summary,
+.rg details.ctable summary {
+  display: list-item;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 12px 0;
+  font-size: 0.9rem;
+}
+@media (max-width: 520px) {
+  .rg .chart .tick,
+  .rg .chart .xl,
+  .rg .chart .cap {
+    font-size: 16px;
+  }
+}
