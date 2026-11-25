@@ -48,8 +48,10 @@ describe('localAuth', () => {
     expect((await a.pinStatus()).configured).toBe(false);
   });
 });
+
 describe('conta nova', () => {
-  it('estado salvo sem pessoas abre com as pessoas padrão', () => {
-    expect(fromBackupText(JSON.stringify({ v: 7, people: [] })).people.length).toBeGreaterThan(0);
+  it('export com people vazio abre com as pessoas padrão', () => {
+    const d = fromBackupText('RATEIO-BACKUP ' + JSON.stringify({ v: 7, people: [], history: [] }));
+    expect(d.people.length).toBeGreaterThan(0);
   });
 });
