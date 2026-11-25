@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { PIN_RE, type Auth } from '../data/auth';
 
 /** Tempo oculta (trocar de app/aba do navegador) a partir do qual pede o PIN. */
-export const HIDDEN_LOCK_MS = 60_000;
+const HIDDEN_LOCK_MS = 60_000;
 
 type Stage = 'loading' | 'login' | 'pin-new' | 'pin' | 'open';
 
