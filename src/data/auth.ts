@@ -5,6 +5,7 @@
  */
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { reportRpcError } from '../lib/monitoring';
 
 export const isLocalMode = import.meta.env.VITE_LOCAL_MODE === '1';
 
@@ -30,7 +31,10 @@ export const supabaseAuth = (): Auth => {
   const sb = supabase!;
   const rpc = async (fn: string, args?: object) => {
     const { data, error } = await sb.rpc(fn, args);
-    if (error) throw new Error(error.message);
+    if (error) {
+      reportRpcError(fn, error);
+      throw new Error(error.message);
+    }
     return data as Record<string, unknown>;
   };
   return {
