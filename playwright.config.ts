@@ -27,7 +27,8 @@ export default defineConfig({
   webServer: baseURL
     ? undefined
     : {
-        command: 'E2E_HARNESS=1 npm run build && npm run preview -- --port 4173 --strictPort',
+        command:
+          'VITE_LOCAL_MODE=1 E2E_HARNESS=1 npm run build && npm run preview -- --port 4173 --strictPort',
         url: 'http://localhost:4173',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
