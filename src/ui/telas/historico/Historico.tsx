@@ -92,7 +92,7 @@ export function Historico({ env, renderProjecao }: Props) {
     if (ok) {
       setOpenPay(null);
       env.toast('Pagamento registrado');
-    } else if (erro) env.toast(erro, 'erro');
+    } else if (erro) env.toast(erro, 'err');
   }
 
   async function delPay(h: Month, i: number, j: number) {

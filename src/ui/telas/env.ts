@@ -8,7 +8,7 @@ import type { Ctx } from '../../lib/types';
 export interface Env {
   ctx: Ctx;
   commit(fn: (c: Ctx) => void | string, opts?: { undo?: boolean }): Promise<boolean>;
-  toast(msg: string, kind?: 'ok' | 'erro'): void;
+  toast(msg: string, kind?: 'ok' | 'err'): void;
   confirm(msg: string, opts?: { ok?: string; danger?: boolean }): Promise<boolean>;
   prompt(msg: string, def?: string): Promise<string | null>;
 }
