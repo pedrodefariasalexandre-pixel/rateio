@@ -1,4 +1,5 @@
 /** Etapa 3 — Mensagens prontas: texto por pessoa, copiar/WhatsApp, CSV, projeção e fechar o mês. */
+import './final.css';
 import { useState } from 'react';
 import { backupText } from '../../../../lib/backup';
 import { canClose, closeMonth } from '../../../../lib/closeMonth';
