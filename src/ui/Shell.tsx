@@ -1,6 +1,7 @@
 /** Abas do app. As telas são portadas em src/ui/screens/main (fatura) e src/ui/telas (demais). */
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
+import { FaturaFlow } from './screens/main/FaturaFlow';
 import { PessoasMemoriaAba } from './telas';
 
 const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
@@ -43,7 +44,9 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         ))}
       </nav>
       <main>
-        {tab === 'Pessoas' ? (
+        {tab === 'Fatura' ? (
+          <FaturaFlow />
+        ) : tab === 'Pessoas' ? (
           <PessoasMemoriaAba />
         ) : (
           <p className="muted">Tela “{tab}” em portabilidade.</p>
