@@ -1,0 +1,59 @@
+/* Liquid Glass — Fatura / Mensagens (FinalScreen). Escopo por id. */
+#sFinal .pcard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+#sFinal .pcard .head,
+#sFinal .pcard .actions {
+  border-color: var(--line);
+  background: var(--glass-bg-thin);
+}
+#sFinal .pcard textarea {
+  background: transparent;
+}
+#sFinal .pcard textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+#sFinal .closebox {
+  border-radius: var(--radius-lg);
+}
+#sFinal .ctable table {
+  border-radius: var(--radius);
+}
+#sFinal .meter {
+  border-radius: var(--radius-pill);
+}
+#sFinal .meter span {
+  border-radius: var(--radius-pill);
+}
+
+/* Crítica de UI — alvos ≥44px, ações alinhadas e legíveis. */
+#sFinal .btn,
+#sFinal .toggle,
+#sFinal .linkbtn {
+  min-height: 44px;
+}
+#sFinal .toggle input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#sFinal .pcard .actions {
+  gap: 10px;
+}
+#sFinal .pcard .actions .btn {
+  flex: 1 1 160px;
+}
+#sFinal .pcard .actions .btn:not(.primary) {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--line-strong);
+}
+#sFinal .pcard textarea {
+  font-size: 0.84rem;
+}
+@media (max-width: 600px) {
+  #sFinal .rhead {
+    align-items: center;
+  }
+}
