@@ -1743,3 +1743,16 @@ dialog[open] {
   background: var(--danger);
   color: var(--on-accent);
 }
+.topnav .btn[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+button.logo {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+.topnav {
+  max-width: none;
+}

@@ -81,3 +81,15 @@ test('restaura um backup, registra pagamento no histórico e edita cobranças e 
 
   expect(errors).toEqual([]);
 });
+
+test('topbar do v3: logo, etapas e navegação entre telas, inclusive Pessoas', async ({ page }) => {
+  await entrar(page);
+  await expect(page.locator('.logo')).toContainText('rateio');
+  await expect(page.getByRole('navigation', { name: 'Etapas' }).locator('.on')).toHaveText(
+    'Importar',
+  );
+  await aba(page, 'Pessoas').click();
+  await expect(page.getByRole('heading', { name: 'Pessoas & memória' })).toBeVisible();
+  await page.getByRole('button', { name: 'Fatura' }).click();
+  await expect(page.getByRole('heading', { name: /Divida a fatura/ })).toBeVisible();
+});
