@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+const URL = 'http://localhost:4174/e2e/harness/relatorios.html';
+test.skip(!!process.env.E2E_BASE_URL, 'harness só existe no servidor local de desenvolvimento');
+
 test.describe('Relatórios e gráfico (dados sintéticos)', () => {
   test('mostra resumo, gráfico, dica por coluna e tabela', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.goto('/harness-relatorios.html');
+    await page.goto(URL);
     const rel = page.getByTestId('relatorios');
     await expect(rel.getByText('Último mês')).toBeVisible();
     await expect(rel.getByText('Média por mês')).toBeVisible();
@@ -25,7 +28,7 @@ test.describe('Relatórios e gráfico (dados sintéticos)', () => {
   });
 
   test('alterna para "Por tag" e muda o período', async ({ page }) => {
-    await page.goto('/harness-relatorios.html');
+    await page.goto(URL);
     const rel = page.getByTestId('relatorios');
     await rel.getByRole('button', { name: 'Por tag' }).click();
     await expect(rel.locator('.legend')).toContainText('Mercado');
@@ -38,7 +41,7 @@ test.describe('Relatórios e gráfico (dados sintéticos)', () => {
   });
 
   test('projeção mostra parcelas em andamento e gráfico', async ({ page }) => {
-    await page.goto('/harness-relatorios.html');
+    await page.goto(URL);
     await expect(page.getByText('Parcelas em andamento')).toBeVisible();
     await expect(
       page.getByRole('img', { name: 'Valor comprometido por mês, por pessoa' }),
@@ -47,7 +50,7 @@ test.describe('Relatórios e gráfico (dados sintéticos)', () => {
 
   test('tema escuro continua legível', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark' });
-    await page.goto('/harness-relatorios.html');
+    await page.goto(URL);
     await expect(page.getByTestId('relatorios').locator('.chart svg')).toBeVisible();
   });
 });
