@@ -64,3 +64,12 @@
     transition: none;
   }
 }
+
+/* Revisão de UI: alvos de toque ≥44px e alinhamento das ações */
+.tela-historico .btn.small {
+  min-height: 44px;
+  padding-inline: 14px;
+}
+.tela-historico .hbody .btn.small {
+  flex: 1 1 auto;
+}
