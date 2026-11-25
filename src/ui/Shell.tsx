@@ -1,8 +1,9 @@
-/** Abas do app. As telas são portadas em src/ui/screens/main (fatura) e src/ui/telas (demais). */
+/** Shell do app: topbar do v3 (logo, etapas da fatura e botões de ícone) + a tela da vez. */
 import { useEffect, useState } from 'react';
+import { openBalances } from '../lib/receivables';
 import { useRateio } from './AppContext';
-import { FaturaFlow } from './screens/main/FaturaFlow';
 import { PessoasMemoriaAba } from './telas';
+import { FaturaFlow, STEPS, type Step } from './screens/main/FaturaFlow';
 import {
   BackupNagTopo,
   CobrancasTela,
@@ -11,12 +12,20 @@ import {
   RelatoriosTela,
 } from './telas/adapters';
 
-const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
-type Tab = (typeof TABS)[number];
+const NAV = [
+  ['Relatórios', '📊', 'Relatórios'],
+  ['Histórico', '🗂', 'Histórico e recebimentos'],
+  ['Cobranças', '📌', 'Cobranças fixas'],
+  ['Pessoas', '👥', 'Pessoas & memória'],
+  ['Config', '⚙️', 'Configurações e backup'],
+] as const;
+type Tab = 'Fatura' | (typeof NAV)[number][0];
 
 export function Shell({ onSignOut }: { onSignOut: () => void }) {
+  const { undo, ctx } = useRateio();
   const [tab, setTab] = useState<Tab>('Fatura');
-  const { undo } = useRateio();
+  const [step, setStep] = useState<Step>(ctx.inv.txs.length ? 'sReview' : 'sImport');
+  const open = openBalances(ctx).length;
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -28,46 +37,72 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
     addEventListener('keydown', k);
     return () => removeEventListener('keydown', k);
   }, [undo]);
+  const idx = STEPS.findIndex(([s]) => s === step);
   return (
-    <div className="wrap">
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingTop: 12,
-        }}
-      >
-        <h1>Rateio</h1>
-        <button className="btn" onClick={onSignOut}>
-          Sair
-        </button>
-      </header>
-      <nav className="tabs" aria-label="Seções">
-        {TABS.map((t) => (
-          <button key={t} aria-current={t === tab ? 'page' : undefined} onClick={() => setTab(t)}>
-            {t}
+    <>
+      <header className="topbar">
+        <div className="wrap">
+          <button
+            className="logo"
+            aria-label="Fatura"
+            aria-current={tab === 'Fatura' ? 'page' : undefined}
+            onClick={() => setTab('Fatura')}
+          >
+            <i aria-hidden="true">÷</i>rateio
           </button>
-        ))}
-      </nav>
-      <main>
+          <nav className="steps" aria-label="Etapas">
+            {STEPS.map(([s, l], i) => (
+              <span
+                key={s}
+                data-step={s}
+                className={tab === 'Fatura' && i === idx ? 'on' : undefined}
+              >
+                {l}
+              </span>
+            ))}
+          </nav>
+          <nav className="topnav" aria-label="Seções">
+            {NAV.map(([t, icon, title]) => (
+              <button
+                key={t}
+                className="btn ghost small"
+                title={title}
+                aria-label={t === 'Histórico' && open ? `${title}: ${open} pessoa(s) em aberto` : t}
+                aria-current={t === tab ? 'page' : undefined}
+                onClick={() => setTab(t)}
+              >
+                {icon}
+                <span className="lbl" aria-hidden="true">
+                  {t}
+                </span>
+                {t === 'Histórico' && open > 0 && <span className="nbadge">{open}</span>}
+              </button>
+            ))}
+            <button className="btn ghost small" title="Sair" aria-label="Sair" onClick={onSignOut}>
+              ⎋
+              <span className="lbl" aria-hidden="true">
+                Sair
+              </span>
+            </button>
+          </nav>
+        </div>
+      </header>
+      <main className="wrap">
         <BackupNagTopo />
         {tab === 'Fatura' ? (
-          <FaturaFlow />
+          <FaturaFlow step={step} setStep={setStep} />
         ) : tab === 'Histórico' ? (
           <HistoricoTela />
-        ) : tab === 'Pessoas' ? (
-          <PessoasMemoriaAba />
         ) : tab === 'Relatórios' ? (
           <RelatoriosTela />
         ) : tab === 'Cobranças' ? (
           <CobrancasTela />
-        ) : tab === 'Config' ? (
-          <ConfigTela />
+        ) : tab === 'Pessoas' ? (
+          <PessoasMemoriaAba />
         ) : (
-          <p className="muted">Tela “{tab}” em portabilidade.</p>
+          <ConfigTela />
         )}
       </main>
-    </div>
+    </>
   );
 }

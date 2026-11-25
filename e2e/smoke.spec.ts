@@ -11,7 +11,7 @@ test('cria o PIN, entra, trava ao recarregar e confere o PIN', async ({ page }) 
   await expect(page.getByRole('alert')).toHaveText('Os dois PINs não são iguais.');
   await page.getByLabel('Repita o PIN').fill('1234');
   await page.getByRole('button', { name: 'Criar PIN' }).click();
-  await expect(page.getByRole('heading', { name: 'Rateio' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Seções' })).toBeVisible();
 
   await page.reload();
