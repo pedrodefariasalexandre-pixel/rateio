@@ -51,11 +51,15 @@ dialog,
 }
 .tabs button {
   border-radius: var(--radius-pill);
-  transition: background 0.25s var(--ease-spring), color 0.2s;
+  transition:
+    background 0.25s var(--ease-spring),
+    color 0.2s;
 }
 .tabs button[aria-current='page'] {
   background: var(--glass-bg-strong);
-  box-shadow: var(--glass-edge), 0 2px 8px oklch(0 0 0 / 0.08);
+  box-shadow:
+    var(--glass-edge),
+    0 2px 8px oklch(0 0 0 / 0.08);
 }
 
 /* botões */
@@ -64,7 +68,10 @@ dialog,
   background: var(--glass-bg-thin);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-edge);
-  transition: transform 0.2s var(--ease-spring), background 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s var(--ease-spring),
+    background 0.2s,
+    box-shadow 0.2s;
 }
 .btn:hover {
   background: var(--glass-bg-strong);
@@ -75,7 +82,9 @@ dialog,
 .btn.primary {
   background: linear-gradient(180deg, color-mix(in oklch, var(--accent) 88%, white), var(--accent));
   border-color: color-mix(in oklch, var(--accent) 70%, white);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.45), 0 4px 14px color-mix(in oklch, var(--accent) 35%, transparent);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.45),
+    0 4px 14px color-mix(in oklch, var(--accent) 35%, transparent);
 }
 .btn.ghost {
   background: transparent;
@@ -111,7 +120,9 @@ textarea {
 .seg button[aria-pressed='true'] {
   background: var(--glass-bg-strong);
   border-radius: var(--radius-pill);
-  box-shadow: var(--glass-edge), 0 2px 6px oklch(0 0 0 / 0.08);
+  box-shadow:
+    var(--glass-edge),
+    0 2px 6px oklch(0 0 0 / 0.08);
 }
 
 /* modal */
@@ -151,7 +162,9 @@ dialog::backdrop {
 }
 .gate button.primary {
   border-radius: var(--radius-pill);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.45), 0 4px 14px color-mix(in oklch, var(--accent) 35%, transparent);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.45),
+    0 4px 14px color-mix(in oklch, var(--accent) 35%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
