@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
 import { FaturaFlow } from './screens/main/FaturaFlow';
+import { PessoasMemoriaAba } from './telas';
 import {
   BackupNagTopo,
   CobrancasTela,
@@ -55,6 +56,8 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
           <FaturaFlow />
         ) : tab === 'Histórico' ? (
           <HistoricoTela />
+        ) : tab === 'Pessoas' ? (
+          <PessoasMemoriaAba />
         ) : tab === 'Relatórios' ? (
           <RelatoriosTela />
         ) : tab === 'Cobranças' ? (
