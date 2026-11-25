@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
 import { FaturaFlow } from './screens/main/FaturaFlow';
+import { Relatorios } from './telas';
 
 const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
 type Tab = (typeof TABS)[number];
 
 export function Shell({ onSignOut }: { onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>('Fatura');
-  const { undo } = useRateio();
+  const { undo, ctx } = useRateio();
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -45,6 +46,8 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
       <main>
         {tab === 'Fatura' ? (
           <FaturaFlow />
+        ) : tab === 'Relatórios' ? (
+          <Relatorios ctx={ctx} />
         ) : (
           <p className="muted">Tela “{tab}” em portabilidade.</p>
         )}
