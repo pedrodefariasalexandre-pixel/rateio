@@ -1,0 +1,31 @@
+# dependências e build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# segredos: nunca versionar
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+
+# dados reais do cartão: nunca versionar (fatura, backup, exportações)
+*.ofx
+*.OFX
+*.qfx
+*.QFX
+rateio-backup*
+*.csv
+!src/**/__fixtures__/**/*.csv
+
+# editor e sistema
+.vercel/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
