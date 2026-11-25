@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { backupText } from '../lib/backup';
 import { data } from '../test/fixtures';
 import { localAuth } from './auth';
-import { localRepo } from './repo';
+import { fromBackupText, localRepo } from './repo';
 
 const mem = (): Storage => {
   const m = new Map<string, string>();
@@ -46,5 +46,12 @@ describe('localAuth', () => {
     expect((await a.verifyPin('1234')).result).toBe('ok');
     await a.resetPin();
     expect((await a.pinStatus()).configured).toBe(false);
+  });
+});
+
+describe('conta nova', () => {
+  it('export com people vazio abre com as pessoas padrão', () => {
+    const d = fromBackupText('RATEIO-BACKUP ' + JSON.stringify({ v: 7, people: [], history: [] }));
+    expect(d.people.length).toBeGreaterThan(0);
   });
 });
