@@ -4,6 +4,7 @@ import { localRepo, supabaseRepo } from '../data/repo';
 import { isSupabaseConfigured } from '../data/supabase';
 import type { Data } from '../lib/types';
 import { RateioProvider } from './AppContext';
+import { ConfirmProvider } from './base/confirm';
 import { Gate } from './Gate';
 import { Shell } from './Shell';
 
@@ -43,7 +44,9 @@ function Loaded({
   if (!d) return <p className="gate">Carregando seus dados…</p>;
   return (
     <RateioProvider repo={repo} initial={d}>
-      <Shell onSignOut={onSignOut} />
+      <ConfirmProvider>
+        <Shell onSignOut={onSignOut} />
+      </ConfirmProvider>
     </RateioProvider>
   );
 }
