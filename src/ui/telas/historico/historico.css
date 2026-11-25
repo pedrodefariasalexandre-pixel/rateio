@@ -1,0 +1,66 @@
+/* Histórico — Liquid Glass (só tokens) */
+.tela-historico .opensum,
+.tela-historico .hist {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+.tela-historico .opensum {
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.tela-historico .hist {
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: background 0.25s var(--ease-spring);
+}
+.tela-historico .hist[open] {
+  background: var(--glass-bg-strong);
+}
+.tela-historico .hist summary {
+  padding: 14px 16px;
+  min-height: 48px;
+}
+.tela-historico .hist .hbody {
+  padding: 0 16px 16px;
+}
+.tela-historico .orow,
+.tela-historico .htable td {
+  border-top-color: var(--line);
+}
+.tela-historico .htable td {
+  padding: 8px 4px;
+}
+.tela-historico .payform {
+  background: var(--glass-bg-thin);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-edge);
+  padding: 12px;
+}
+.tela-historico .proj {
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-edge);
+}
+.tela-historico .tag {
+  border-radius: var(--radius-pill);
+}
+.tela-historico .iconx {
+  transition: background 0.2s var(--ease-spring);
+}
+.tela-historico .ph {
+  margin: 18px 4px 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tela-historico .hist,
+  .tela-historico .iconx {
+    transition: none;
+  }
+}

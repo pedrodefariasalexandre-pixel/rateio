@@ -3,6 +3,7 @@ import { chargeHint, chargeOwners, editCharge, newCharge } from '../../../lib/ch
 import { activePeople, personById, safeColor } from '../../../lib/state';
 import type { Charge } from '../../../lib/types';
 import type { Env } from '../env';
+import './cobrancas.css';
 
 type Campo = 'nome' | 'valor' | 'parcAtual' | 'parcTotal' | 'parcComp';
 
@@ -172,7 +173,7 @@ function Linha({ env, c }: { env: Env; c: Charge }) {
 export function Cobrancas({ env }: { env: Env }) {
   const { charges } = env.ctx.d;
   return (
-    <div>
+    <div className="tela-cobrancas">
       <p className="help" style={{ margin: '0 0 12px' }}>
         Empréstimos, outros cartões e assinaturas que não estão no OFX. Entram na divisão. Com
         parcela preenchida, informe também a que mês ela se refere (“em”): o app calcula a parcela
