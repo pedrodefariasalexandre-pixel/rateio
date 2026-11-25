@@ -1,36 +1,13 @@
-/* Tokens e estilos do gráfico, da projeção e dos relatórios (iguais ao rateio-v3; escopo .rg para não mexer no CSS base). */
+/* Relatórios, gráfico e projeção — Liquid Glass. Só tokens de src/ui/glass/tokens.css (e a paleta de séries do gráfico, validada para daltonismo, vem de --mc inline). */
 .rg {
-  --bg: oklch(0.972 0.005 165);
-  --surface: oklch(1 0 0);
-  --surface-2: oklch(0.955 0.007 165);
-  --ink: oklch(0.24 0.016 165);
-  --ink-2: oklch(0.43 0.016 165);
-  --line: oklch(0.905 0.007 165);
-  --line-strong: oklch(0.82 0.01 165);
-  --accent: oklch(0.5 0.12 158);
-  --accent-ink: oklch(0.4 0.1 158);
-  --accent-soft: oklch(0.95 0.035 158);
-  --warn: oklch(0.47 0.12 55);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px oklch(0.3 0.02 165 / 0.06), 0 4px 16px oklch(0.3 0.02 165 / 0.05);
   color: var(--ink);
-}
-@media (prefers-color-scheme: dark) {
-  .rg {
-    --bg: oklch(0.17 0.008 165);
-    --surface: oklch(0.215 0.01 165);
-    --surface-2: oklch(0.25 0.011 165);
-    --ink: oklch(0.95 0.006 165);
-    --ink-2: oklch(0.76 0.012 165);
-    --line: oklch(0.31 0.012 165);
-    --line-strong: oklch(0.4 0.014 165);
-    --accent: oklch(0.74 0.13 158);
-    --accent-ink: oklch(0.8 0.12 158);
-    --accent-soft: oklch(0.3 0.05 158);
-    --warn: oklch(0.82 0.11 75);
-    --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 6px 20px oklch(0 0 0 / 0.25);
-  }
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+  padding: 16px;
 }
 .rg .num {
   font-variant-numeric: tabular-nums;
@@ -103,8 +80,10 @@
   gap: 8px;
 }
 .rg .pitem {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-edge);
   padding: 10px 12px;
 }
 .rg .pi-top {
@@ -195,11 +174,13 @@
   position: absolute;
   top: 0;
   transform: translateX(-50%);
-  background: var(--surface);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
   padding: 8px 10px;
   font-size: 0.8rem;
   min-width: 170px;
@@ -314,8 +295,9 @@
 }
 .rg .seg {
   display: inline-flex;
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
   padding: 3px;
   gap: 2px;
   flex-wrap: wrap;
@@ -323,8 +305,9 @@
 .rg .seg button {
   border: 0;
   background: transparent;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: background 0.25s var(--ease-spring);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 600;
@@ -333,13 +316,13 @@
   min-height: 30px;
 }
 .rg .seg button[aria-pressed='true'] {
-  background: var(--surface);
+  background: var(--glass-bg-strong);
   color: var(--ink);
-  box-shadow: var(--shadow);
+  box-shadow: var(--glass-edge), var(--shadow);
 }
 .rg .field {
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-thin);
   color: var(--ink);
   border-radius: var(--radius-sm);
   padding: 7px 9px;
@@ -350,5 +333,11 @@
 @media (max-width: 520px) {
   .rg .prow2 {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rg .seg button {
+    transition: none;
   }
 }
