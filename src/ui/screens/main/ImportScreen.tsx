@@ -1,4 +1,5 @@
 /** Etapa 1 do v3 (#sImport): soltar/escolher o OFX ou dividir só as cobranças fixas. */
+import './import.css';
 import { useRef, useState } from 'react';
 import { useRateio } from '../../AppContext';
 import { hasCharges } from '../../../lib/charges';

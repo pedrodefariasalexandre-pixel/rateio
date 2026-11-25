@@ -1,4 +1,5 @@
 /** Etapa 2 do v3 (#sReview): avisos, conferência, filtros, atribuição em massa, lista e rodapé com totais. */
+import './review.css';
 import { useState } from 'react';
 import { useRateio } from '../../AppContext';
 import { useConfirm } from '../../base/confirm';

@@ -1,4 +1,5 @@
 /** Avisos da revisão (#reviewNotices) e "Conferência da fatura" (#ledger), iguais ao v3. */
+import './notices.css';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { chargesOutside } from '../../../lib/charges';
 import { dateBR, ddmm } from '../../../lib/dates';
