@@ -86,6 +86,7 @@
   min-width: 0;
 }
 .notice.cfg-nag .btn.small {
+  min-height: 44px;
   border-radius: var(--radius-pill);
 }
 .notice.cfg-nag .btn.ghost {
