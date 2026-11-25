@@ -1,0 +1,37 @@
+name: E2E no preview da Vercel
+
+# Quando a Vercel termina um deploy de preview (integração Git da Vercel), roda o mesmo E2E contra a URL publicada.
+# Se o preview tiver proteção, crie o secret VERCEL_AUTOMATION_BYPASS_SECRET no GitHub (Vercel > Settings >
+# Deployment Protection > Protection Bypass for Automation). Sem a integração da Vercel, este workflow não dispara.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-preview:
+    name: e2e no preview
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      E2E_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-preview
+          path: playwright-report
+          retention-days: 7
