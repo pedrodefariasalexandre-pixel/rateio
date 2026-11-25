@@ -27,13 +27,23 @@
 }
 .cfg-pix .field {
   min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  font-size: 16px;
+  text-overflow: ellipsis;
   background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
 }
 .cfg-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+.cfg-actions .btn.small,
+.notice.cfg-nag .btn.small {
+  min-height: 44px;
+  padding-inline: 18px;
 }
 .cfg-actions .btn {
   border-radius: var(--radius-pill);
@@ -58,7 +68,7 @@
 
 /* BackupNag */
 .notice.info.cfg-nag {
-  margin: 0;
+  margin: 12px 0 14px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -75,6 +85,10 @@
   flex: 1 1 220px;
   min-width: 0;
 }
-.notice.cfg-nag .btn {
+.notice.cfg-nag .btn.small {
   border-radius: var(--radius-pill);
+}
+.notice.cfg-nag .btn.ghost {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-thin);
 }
