@@ -1,5 +1,6 @@
 /** Login (Supabase Auth) e trava de PIN, inclusive por inatividade. */
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import './gate.css';
 import { PIN_RE, type Auth } from '../data/auth';
 
 /** Tempo oculta (trocar de app/aba do navegador) a partir do qual pede o PIN. */
