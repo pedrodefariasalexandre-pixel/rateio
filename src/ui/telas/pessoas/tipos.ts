@@ -1,7 +1,7 @@
 import type { Ctx } from '../../../lib/types';
 
 /** O que mudou: a camada de dados grava só a parte indicada (uma tabela por parte). */
-export type Parte = 'pessoas' | 'regras' | 'tags' | 'preferencias' | 'parcelas';
+export type Parte = 'pessoas' | 'regras' | 'tags' | 'parcelas';
 
 export interface PessoasMemoriaProps {
   ctx: Ctx;

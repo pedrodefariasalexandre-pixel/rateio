@@ -58,14 +58,11 @@ describe('Pessoas & memória', () => {
     expect(ctx.d.people.map((p) => p.id)).toEqual(['p1', 'p2']);
   });
 
-  it('renomeia tag, apaga tag e grava PIX', () => {
-    const { ctx, onChange } = abrir();
+  it('renomeia e apaga tag', () => {
+    const { ctx } = abrir();
     fireEvent.change(screen.getByLabelText('Nome da tag Mercado'), { target: { value: 'Feira' } });
     fireEvent.blur(screen.getByLabelText('Nome da tag Mercado'));
     expect(ctx.d.tags[0]!.nome).toBe('Feira');
-    fireEvent.change(screen.getByLabelText('Chave PIX'), { target: { value: 'ana@teste.com' } });
-    expect(ctx.d.settings.pix).toBe('ana@teste.com');
-    expect(onChange).toHaveBeenCalledWith('preferencias');
     fireEvent.click(screen.getByRole('button', { name: 'Apagar tag Feira' }));
     fireEvent.click(screen.getByRole('button', { name: 'Apagar tag' }));
     expect(ctx.d.tags).toEqual([]);

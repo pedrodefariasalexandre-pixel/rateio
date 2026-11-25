@@ -1,7 +1,6 @@
 import { useReducer, useState } from 'react';
 import { Confirmar, type PedidoConfirmacao } from './Confirmar';
 import { Pessoas } from './Pessoas';
-import { Pix } from './Pix';
 import { Regras } from './Regras';
 import { TagsAdmin } from './TagsAdmin';
 import type { PessoasMemoriaProps } from './tipos';
@@ -18,7 +17,6 @@ export function PessoasMemoria({ ctx, onChange }: PessoasMemoriaProps) {
     <div className="pm" data-testid="pessoas-memoria">
       <h3>Pessoas &amp; memória</h3>
       <Pessoas {...s} />
-      <Pix ctx={ctx} onChange={onChange} />
       <TagsAdmin {...s} />
       <Regras {...s} />
       <Confirmar pedido={pedido} fechar={() => setPedido(null)} />
