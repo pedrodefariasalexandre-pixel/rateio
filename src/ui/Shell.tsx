@@ -2,6 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
 import { FaturaFlow } from './screens/main/FaturaFlow';
+import {
+  BackupNagTopo,
+  CobrancasTela,
+  ConfigTela,
+  HistoricoTela,
+  RelatoriosTela,
+} from './telas/adapters';
 
 const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
 type Tab = (typeof TABS)[number];
@@ -43,8 +50,17 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         ))}
       </nav>
       <main>
+        <BackupNagTopo />
         {tab === 'Fatura' ? (
           <FaturaFlow />
+        ) : tab === 'Histórico' ? (
+          <HistoricoTela />
+        ) : tab === 'Relatórios' ? (
+          <RelatoriosTela />
+        ) : tab === 'Cobranças' ? (
+          <CobrancasTela />
+        ) : tab === 'Config' ? (
+          <ConfigTela />
         ) : (
           <p className="muted">Tela “{tab}” em portabilidade.</p>
         )}
