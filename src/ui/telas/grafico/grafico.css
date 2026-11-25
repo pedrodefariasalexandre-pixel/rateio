@@ -231,18 +231,6 @@
 .rg .chart .mk {
   fill: var(--mc);
 }
-@media (prefers-color-scheme: dark) {
-  /* cores escolhidas pelo usuário: no escuro só a luminosidade é ajustada (0,60–0,66) */
-  .rg .chart .mk {
-    fill: oklch(from var(--mc) clamp(0.6, l, 0.66) c h);
-  }
-  .rg .chart-tip .dot {
-    filter: none;
-  }
-  .rg .legend i {
-    background: oklch(from var(--mc) clamp(0.6, l, 0.66) c h);
-  }
-}
 .rg .tscroll {
   overflow-x: auto;
 }
