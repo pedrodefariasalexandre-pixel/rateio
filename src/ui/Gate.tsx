@@ -1,6 +1,9 @@
 /** Login (Supabase Auth) e trava de PIN, inclusive por inatividade. */
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { PIN_RE, type Auth } from '../data/auth';
+
+/** Tempo oculta (trocar de app/aba do navegador) a partir do qual pede o PIN. */
+export const HIDDEN_LOCK_MS = 60_000;
 
 type Stage = 'loading' | 'login' | 'pin-new' | 'pin' | 'open';
 
@@ -15,10 +18,16 @@ export function Gate({
 }) {
   const [stage, setStage] = useState<Stage>('loading');
   const [msg, setMsg] = useState('');
+  const stageRef = useRef<Stage>('loading');
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   const route = async () => {
     try {
       if (!(await auth.session())) return setStage('login');
+      // o Supabase reemite SIGNED_IN ao voltar para a aba; não deve travar de novo
+      if (stageRef.current === 'open') return;
       const s = await auth.pinStatus();
       setStage(s.configured ? 'pin' : 'pin-new');
     } catch (e) {
@@ -48,6 +57,19 @@ export function Gate({
       ev.forEach((e) => removeEventListener(e, arm));
     };
   }, [stage, lockMinutes]);
+
+  // trava ao voltar se a página ficou oculta por HIDDEN_LOCK_MS ou mais
+  useEffect(() => {
+    if (stage !== 'open') return;
+    let since = 0;
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') since = Date.now();
+      else if (since && Date.now() - since >= HIDDEN_LOCK_MS) setStage('pin');
+      else since = 0;
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [stage]);
 
   if (stage === 'open') return <>{children}</>;
   if (stage === 'loading') return <p className="gate">Carregando…</p>;
