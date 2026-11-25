@@ -3,6 +3,7 @@
  * passam pela RLS). Em desenvolvimento e nos testes E2E (VITE_LOCAL_MODE=1): o navegador.
  * O contrato do v3 vale: gravação devolve sucesso ou erro e nunca falha em silêncio.
  */
+import { reportRpcError } from '../lib/monitoring';
 import {
   applyBackup,
   backupText,
@@ -63,7 +64,10 @@ export const supabaseRepo = (): Repo => {
   return {
     async load() {
       const { data, error } = await sb.rpc('export_rateio_backup');
-      if (error) throw new Error('Não consegui carregar seus dados: ' + error.message);
+      if (error) {
+        reportRpcError('export_rateio_backup', error);
+        throw new Error('Não consegui carregar seus dados: ' + error.message);
+      }
       return fromBackupText(String(data));
     },
     async save(d) {
@@ -71,14 +75,20 @@ export const supabaseRepo = (): Repo => {
         p_backup: backupText(d),
         p_parcelas_mode: 'substituir',
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        reportRpcError('import_rateio_backup', error);
+        throw new Error(error.message);
+      }
     },
     async importBackup(text, mode) {
       const { data, error } = await sb.rpc('import_rateio_backup', {
         p_backup: text,
         p_parcelas_mode: mode ?? null,
       });
-      if (error) return { status: 'invalid', problem: problemOf(error) };
+      if (error) {
+        reportRpcError('import_rateio_backup', error);
+        return { status: 'invalid', problem: problemOf(error) };
+      }
       const r = data as {
         status: string;
         backup_parcelas?: number;
