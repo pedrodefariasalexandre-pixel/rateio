@@ -29,8 +29,20 @@ export interface Repo {
   inactivityMinutes(): Promise<number>;
 }
 
-/** Completa o que falta (conta nova, backup antigo) para o app abrir sempre. */
+/**
+ * Lê o estado guardado. Conta nova vem sem pessoas: aí vale o estado inicial (pessoas padrão).
+ * A regra "backup precisa ter pessoas" vale só para restaurar backup (parseBackup em importBackup).
+ */
 export function fromBackupText(text: string): Data {
+  try {
+    const o = JSON.parse(text);
+    if (o && typeof o === 'object' && Array.isArray(o.people) && !o.people.length) {
+      delete o.people;
+      text = JSON.stringify(o);
+    }
+  } catch {
+    /* segue: parseBackup acusa o formato inválido */
+  }
   const p = parseBackup(text);
   if (!p.ok) throw new Error('Os dados salvos estão em formato inesperado: ' + p.problem);
   const d = applyBackup(emptyData(), p.d, 'substituir');

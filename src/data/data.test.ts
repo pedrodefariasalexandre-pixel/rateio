@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { backupText } from '../lib/backup';
 import { data } from '../test/fixtures';
 import { localAuth } from './auth';
-import { localRepo } from './repo';
+import { fromBackupText, localRepo } from './repo';
 
 const mem = (): Storage => {
   const m = new Map<string, string>();
@@ -46,5 +46,10 @@ describe('localAuth', () => {
     expect((await a.verifyPin('1234')).result).toBe('ok');
     await a.resetPin();
     expect((await a.pinStatus()).configured).toBe(false);
+  });
+});
+describe('conta nova', () => {
+  it('estado salvo sem pessoas abre com as pessoas padrão', () => {
+    expect(fromBackupText(JSON.stringify({ v: 7, people: [] })).people.length).toBeGreaterThan(0);
   });
 });
