@@ -29,9 +29,25 @@ export interface Repo {
   inactivityMinutes(): Promise<number>;
 }
 
+/** Conta nova: o banco exporta `people: []`, que o backup normal recusa. Aqui vira "sem pessoas" (usa o padrão). */
+function semPessoasVazias(text: string): string {
+  const i = text.indexOf('{');
+  if (i < 0) return text;
+  try {
+    const o = JSON.parse(text.slice(i));
+    if (Array.isArray(o?.people) && !o.people.length) {
+      delete o.people;
+      return text.slice(0, i) + JSON.stringify(o);
+    }
+  } catch {
+    /* deixa o parseBackup reportar */
+  }
+  return text;
+}
+
 /** Completa o que falta (conta nova, backup antigo) para o app abrir sempre. */
 export function fromBackupText(text: string): Data {
-  const p = parseBackup(text);
+  const p = parseBackup(semPessoasVazias(text));
   if (!p.ok) throw new Error('Os dados salvos estão em formato inesperado: ' + p.problem);
   const d = applyBackup(emptyData(), p.d, 'substituir');
   d.settings = { ...SETTINGS_DEFAULT, ...d.settings };
