@@ -1,6 +1,7 @@
 /** Abas do app. As telas são portadas em src/ui/screens/main (fatura) e src/ui/telas (demais). */
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
+import { PessoasMemoriaAba } from './telas';
 
 const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
 type Tab = (typeof TABS)[number];
@@ -42,7 +43,11 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         ))}
       </nav>
       <main>
-        <p className="muted">Tela “{tab}” em portabilidade.</p>
+        {tab === 'Pessoas' ? (
+          <PessoasMemoriaAba />
+        ) : (
+          <p className="muted">Tela “{tab}” em portabilidade.</p>
+        )}
       </main>
     </div>
   );
