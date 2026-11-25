@@ -2,14 +2,20 @@
 import { useEffect, useState } from 'react';
 import { useRateio } from './AppContext';
 import { FaturaFlow } from './screens/main/FaturaFlow';
-import { Relatorios } from './telas';
+import {
+  BackupNagTopo,
+  CobrancasTela,
+  ConfigTela,
+  HistoricoTela,
+  RelatoriosTela,
+} from './telas/adapters';
 
 const TABS = ['Fatura', 'Histórico', 'Relatórios', 'Pessoas', 'Cobranças', 'Config'] as const;
 type Tab = (typeof TABS)[number];
 
 export function Shell({ onSignOut }: { onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>('Fatura');
-  const { undo, ctx } = useRateio();
+  const { undo } = useRateio();
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -44,10 +50,17 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         ))}
       </nav>
       <main>
+        <BackupNagTopo />
         {tab === 'Fatura' ? (
           <FaturaFlow />
+        ) : tab === 'Histórico' ? (
+          <HistoricoTela />
         ) : tab === 'Relatórios' ? (
-          <Relatorios ctx={ctx} />
+          <RelatoriosTela />
+        ) : tab === 'Cobranças' ? (
+          <CobrancasTela />
+        ) : tab === 'Config' ? (
+          <ConfigTela />
         ) : (
           <p className="muted">Tela “{tab}” em portabilidade.</p>
         )}
