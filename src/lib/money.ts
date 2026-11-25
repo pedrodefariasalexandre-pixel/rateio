@@ -78,3 +78,13 @@ export function splitWeighted(total: number, weights: readonly number[]): number
   }
   return base.map((v) => sign * v);
 }
+
+/** Peso como fração ("1/3") ou porcentagem, para mostrar a divisão por partes. */
+export const fracLabel = (w: number, W: number): string => {
+  const g = (a: number, b: number): number => (b ? g(b, a % b) : a);
+  if (Number.isInteger(w) && Number.isInteger(W)) {
+    const d = g(w, W);
+    return `${w / d}/${W / d}`;
+  }
+  return Math.round((w / W) * 100) + '%';
+};

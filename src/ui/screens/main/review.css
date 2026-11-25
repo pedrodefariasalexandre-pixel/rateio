@@ -1,0 +1,154 @@
+/* Liquid Glass — Fatura / Revisar (ReviewScreen + Row). Escopo por id. */
+#sReview .rhead h2 {
+  letter-spacing: -0.02em;
+}
+#sReview .comp input,
+#sReview .search input {
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--glass-edge);
+  padding-inline: 14px;
+}
+#sReview .seg {
+  background: var(--glass-bg-thin);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--glass-edge);
+  padding: 4px;
+}
+#sReview .seg button {
+  border-radius: var(--radius-pill);
+  transition:
+    background 0.25s var(--ease-spring),
+    color 0.2s;
+}
+#sReview .seg button[aria-pressed='true'] {
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+#sReview .ledger,
+#sReview .bulk {
+  border-radius: var(--radius-lg);
+}
+#sReview .bulk {
+  background: var(--glass-bg-thin);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-edge);
+}
+#sReview .row {
+  transition:
+    transform 0.3s var(--ease-spring),
+    box-shadow 0.25s;
+}
+#sReview .row:hover {
+  transform: translateY(-1px);
+}
+#sReview .row.out {
+  background: var(--glass-bg-thin);
+  box-shadow: var(--glass-edge);
+}
+#sReview .row.pending {
+  border-color: color-mix(in oklch, var(--warn) 55%, var(--glass-border));
+}
+#sReview .chip {
+  background: var(--glass-bg-thin);
+  border-width: 1px;
+  box-shadow: var(--glass-edge);
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.25s var(--ease-spring);
+}
+#sReview .chip:active {
+  transform: scale(0.96);
+}
+#sReview .chip[aria-pressed='true'] {
+  background: color-mix(in oklch, var(--c) 22%, var(--glass-bg-strong));
+}
+#sReview .group-h {
+  padding: 0 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  #sReview .row,
+  #sReview .chip {
+    transition: none;
+  }
+  #sReview .row:hover,
+  #sReview .chip:active {
+    transform: none;
+  }
+}
+
+/* Crítica de UI — alvos de toque ≥44px, alinhamento e rolagem. */
+#sReview .btn,
+#sReview .chip,
+#sReview .seg button,
+#sReview .addtag,
+#sReview .split .presets button,
+#sReview .linkbtn,
+#footer .btn {
+  min-height: 44px;
+}
+#sReview .addtag {
+  min-width: 44px;
+  padding-inline: 14px;
+}
+#sReview .seg button {
+  padding-inline: 12px;
+}
+#sReview .comp input,
+#sReview .search input,
+#sReview .tools .field,
+#sReview .split input,
+#sReview .split select {
+  min-height: 44px;
+}
+#sReview .row .toggle {
+  min-height: 44px;
+  gap: 8px;
+}
+#sReview .row .toggle input,
+#sReview .row input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#sReview .rhead {
+  align-items: center;
+}
+#sReview .comp {
+  margin-left: 0 !important;
+  flex: 1 1 200px;
+  justify-content: space-between;
+}
+#sReview .comp input {
+  flex: 1;
+  min-width: 0;
+  max-width: 220px;
+}
+#sReview .tools .seg {
+  max-width: 100%;
+}
+#sReview .split .presets {
+  scroll-snap-type: x proximity;
+  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+}
+#sReview .split .presets button {
+  scroll-snap-align: start;
+}
+#sReview .row-ctrl .ctrl-right {
+  gap: 4px 10px;
+}
+@media (max-width: 600px) {
+  #sReview .search {
+    flex-basis: 100%;
+  }
+  #sReview .tools .field {
+    flex: 1;
+  }
+}

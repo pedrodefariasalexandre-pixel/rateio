@@ -1,0 +1,65 @@
+/* Shell: topbar com alvos de toque de 44px e toast legível. */
+.topnav .btn.small {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (max-width: 640px) {
+  .topnav {
+    order: 2;
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+}
+.apptoast,
+#toast {
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  text-align: center;
+  line-height: 1.35;
+}
+/* toast opaco: o vidro deixava o texto ilegível sobre o conteúdo */
+div.apptoast,
+#toast {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  z-index: var(--z-toast);
+}
+div.apptoast.err {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+/* cabeçalho em uma linha no desktop */
+.topbar .wrap {
+  max-width: 1120px;
+}
+@media (min-width: 641px) {
+  .topbar .wrap {
+    flex-wrap: nowrap;
+  }
+  .topnav {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+  .steps {
+    flex-shrink: 1;
+    white-space: nowrap;
+  }
+}
+@media (min-width: 641px) and (max-width: 940px) {
+  .topbar .wrap {
+    flex-wrap: wrap;
+  }
+  .topnav {
+    order: 2;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

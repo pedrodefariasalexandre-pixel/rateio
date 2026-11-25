@@ -1,0 +1,46 @@
+/* Liquid Glass — Fatura / Importar. Escopo por id: este CSS carrega antes do index.css. */
+#sImport .hero h1 {
+  font-weight: 700;
+}
+#sImport #dropzone {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+  transition:
+    transform 0.35s var(--ease-spring),
+    border-color 0.2s,
+    background 0.2s;
+}
+#sImport #dropzone:hover,
+#sImport #dropzone.drag,
+#sImport #dropzone:focus-visible {
+  background: var(--glass-bg-strong);
+  border-color: var(--accent);
+  transform: translateY(-2px) scale(1.01);
+}
+#sImport .privacy {
+  background: var(--glass-bg-thin);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  #sImport #dropzone {
+    transition: none;
+  }
+  #sImport #dropzone:hover,
+  #sImport #dropzone.drag {
+    transform: none;
+  }
+}
+
+/* Crítica de UI: respiro e hierarquia no mobile */
+#sImport #dropzone {
+  min-height: 176px;
+}
+#sImport .privacy {
+  line-height: 1.45;
+}

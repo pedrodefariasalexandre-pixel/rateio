@@ -1,0 +1,22 @@
+/* Liquid Glass — avisos da Fatura (Notices). Vidro tingido pela cor do tipo. */
+:is(#sImport, #sReview, #sFinal) .notice {
+  border-radius: var(--radius);
+  border-width: 1px;
+  border-style: solid;
+}
+:is(#sImport, #sReview, #sFinal) .notice.warn {
+  background: color-mix(in oklch, var(--warn) 14%, var(--glass-bg));
+  border-color: color-mix(in oklch, var(--warn) 35%, var(--glass-border));
+}
+:is(#sImport, #sReview, #sFinal) .notice.info {
+  background: color-mix(in oklch, var(--info) 14%, var(--glass-bg));
+  border-color: color-mix(in oklch, var(--info) 35%, var(--glass-border));
+}
+:is(#sImport, #sReview, #sFinal) .notice.danger {
+  background: color-mix(in oklch, var(--danger) 14%, var(--glass-bg));
+  border-color: color-mix(in oklch, var(--danger) 35%, var(--glass-border));
+}
+:is(#sImport, #sReview, #sFinal) .notice.ok {
+  background: color-mix(in oklch, var(--accent) 14%, var(--glass-bg));
+  border-color: color-mix(in oklch, var(--accent) 35%, var(--glass-border));
+}
