@@ -5,6 +5,7 @@ import { initMonitoring } from './lib/monitoring';
 import './ui/index.css';
 import './ui/glass/tokens.css';
 import './ui/glass/base.css';
+import './ui/glass/respiro.css';
 
 initMonitoring();
 
