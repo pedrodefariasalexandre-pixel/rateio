@@ -254,6 +254,33 @@ t("30 rascunho da fatura: um por usuário, só o dono vê", () => {
   eq(as(U2, `select count(*) from public.invoice_drafts;`), "0");
   ok(asErr(U1, `insert into public.invoice_drafts(comp, state) values ('2026-12','{}');`), "segundo rascunho deveria falhar");
 });
+const SNAP = (h) => JSON.stringify({ acct: "kabc", comp: "2026-12", dueDate: "2026-12-07", totalCents: 30000, contentHash: h,
+  lines: [{ pos: 0, fitid: "f1", postedOn: "2026-11-03", memo: "LOJA X 03/10", norm: "LOJA X", cents: 10000, kind: "compra", instCur: 3, instTot: 10, seriesKey: "p2|kabc|LOJA X|10" }] });
+t("40 Horizonte: salvar fatura, reimportar igual não duplica, conteúdo novo pede confirmação", () => {
+  eq(JSON.parse(as(U1, `select public.save_invoice_snapshot(${lit(SNAP("h1"))}::jsonb);`)).status, "created");
+  eq(JSON.parse(as(U1, `select public.save_invoice_snapshot(${lit(SNAP("h1"))}::jsonb);`)).status, "unchanged");
+  eq(JSON.parse(as(U1, `select public.save_invoice_snapshot(${lit(SNAP("h2"))}::jsonb);`)).status, "conflict");
+  eq(JSON.parse(as(U1, `select public.save_invoice_snapshot(${lit(SNAP("h2"))}::jsonb, true);`)).status, "created");
+  eq(as(U1, `select count(*)||'/'||(select count(*) from public.invoice_lines) from public.invoice_snapshots;`), "1/1");
+});
+t("41 Horizonte RLS: outro usuário não lê, não grava nem apaga (CA08)", () => {
+  as(U1, `insert into public.pockets(name, rule, is_reserve) values ('Reserva','acumula',true);
+          insert into public.pocket_moves(pocket_id, kind, cents, on_date) select id,'aporte',100,'2026-11-01' from public.pockets;`);
+  const tabs = ["hz_settings","invoice_snapshots","invoice_lines","hz_decisions","hz_cards","income_sources","hz_holidays","pay_window_overrides","pockets","pocket_moves","hz_items","planned_entries","hz_item_prefs"];
+  eq(as(U2, `select ${tabs.map(x => `(select count(*) from public.${x})`).join("+")};`), "0");
+  const e = asErr(U2, `insert into public.pockets(user_id,name) values ('${U1}','x');`); ok(e && /row-level security/.test(e), e);
+  as(U2, `select public.delete_horizon_data(); delete from public.invoice_snapshots;`);
+  eq(as(U1, `select (select count(*) from public.invoice_snapshots)+(select count(*) from public.pockets);`), "2");
+  ok(asErr(null, `select count(*) from public.pockets;`, { role: "anon" }), "anon leu pockets");
+  ok(asErr(null, `select public.delete_horizon_data();`, { role: "anon" }), "anon chamou RPC");
+});
+t("42 Horizonte: excluir tudo remove só do usuário (CA16) e sem número de cartão", () => {
+  ok(asErr(U1, `insert into public.invoice_snapshots(acct,comp,total_cents,content_hash) values ('5555 4444 3333 2222','2027-01',1,'x');`), "aceitou número de cartão");
+  as(U2, `insert into public.pockets(name) values ('Dele');`);
+  as(U1, `select public.delete_horizon_data();`);
+  eq(as(U1, `select (select count(*) from public.invoice_snapshots)+(select count(*) from public.invoice_lines)+(select count(*) from public.pockets)+(select count(*) from public.pocket_moves);`), "0");
+  eq(as(U2, `select count(*) from public.pockets;`), "1");
+});
 t("31 apagar a conta apaga tudo (cascata de auth.users)", () => {
   reset(); imp(U1, BK);
   psql(`delete from auth.users where id='${U1}';`);
