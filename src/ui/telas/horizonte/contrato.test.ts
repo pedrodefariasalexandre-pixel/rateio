@@ -127,3 +127,21 @@ describe('fonteDoContrato', () => {
     expect(upsertIncome.mock.calls[0]![0]).toMatchObject({ thirteenth: { considered: true } });
   });
 });
+
+describe('minhaParte', () => {
+  it('usa a memória de donos: 50/50 vira metade, de outra pessoa vira zero, sem memória conta inteiro', async () => {
+    const { minhaParte } = await import('./minhaParte');
+    const { ctx } = await import('../../../test/fixtures');
+    const c = ctx();
+    c.d.settings.pixOwner = 'p1';
+    c.d.ruleObs = {
+      MERCADO: [{ c: 10000, o: ['p1', 'p2'] }],
+      ACADEMIA: [{ c: 12900, o: ['p2'] }],
+    } as unknown as typeof c.d.ruleObs;
+    const f = minhaParte(c);
+    const l = (norm: string, cents: number) => ({ norm, cents }) as Parameters<typeof f>[0];
+    expect(f(l('MERCADO', 10000))).toBe(0.5);
+    expect(f(l('ACADEMIA', 12900))).toBe(0);
+    expect(f(l('NOVA LOJA', 5000))).toBe(1);
+  });
+});

@@ -178,14 +178,14 @@ export function paraTela(d: HorizonData, r: HorizonResult): HorizonteDados {
   };
 }
 
-/** `myShare`: fração do Pedro por linha (RF14). Sem ela, conta o item inteiro. */
+/** `getShare`: fração do Pedro por linha (RF14), recalculada a cada carga. Sem ela, item inteiro. */
 export function fonteDoContrato(
   repo: HorizonRepo,
-  myShare: HorizonData['myShare'] = () => 1,
+  getShare: () => HorizonData['myShare'] = () => () => 1,
 ): HorizonteFonte {
   let d: HorizonData | null = null;
   let pendentes: Omit<InvoiceSnapshot, 'id' | 'importedAt'>[] = [];
-  const dados = async () => (d ??= { ...(await repo.load()), myShare, today: hoje() });
+  const dados = async () => (d ??= { ...(await repo.load()), myShare: getShare(), today: hoje() });
   const recarregar = async () => {
     d = null;
     return dados();
