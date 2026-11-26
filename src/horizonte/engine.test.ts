@@ -1,9 +1,11 @@
+import { parseOFX } from '../lib/ofx';
 import { describe, expect, it } from 'vitest';
 import {
   engine,
   seriesKeyOf,
   snapshotFromOfx,
   firstInvoiceComp,
+  invoiceCompFromClosing,
   payWindow,
   planTransfer,
   pocketBalance,
@@ -567,5 +569,37 @@ describe('OFX -> snapshot (RF02–RF04)', () => {
     expect(s.totalCents).toBe(10500);
     expect(snapshotFromOfx(parsed, '2026-12', null).contentHash).toBe(s.contentHash);
     expect(JSON.stringify(s)).not.toMatch(/OFXHEADER|<STMTTRN>/);
+  });
+});
+
+describe('mês da fatura pelo fechamento do OFX (formato Nubank, fixtures inventadas)', () => {
+  const ofx = (dtStart: string, dtEnd: string, memos: [string, string][]) =>
+    `<OFX><BANKTRANLIST><DTSTART>${dtStart}000000[-3:BRT]</DTSTART><DTEND>${dtEnd}000000[-3:BRT]</DTEND>` +
+    memos
+      .map(
+        ([d, m], i) =>
+          `<STMTTRN><TRNTYPE>DEBIT</TRNTYPE><DTPOSTED>${d}000000[-3:BRT]</DTPOSTED><TRNAMT>-10.00</TRNAMT><FITID>f${i}${d}</FITID><MEMO>${m}</MEMO></STMTTRN>`,
+      )
+      .join('') +
+    `</BANKTRANLIST><ACCTID>x</ACCTID></OFX>`;
+  const card = { acct: 'kA', name: '', closingDay: 2, dueDay: 9 };
+  const casos: [string, string, string][] = [
+    ['20261102', '20261202', '2026-12'],
+    ['20261202', '20270102', '2027-01'],
+    ['20270102', '20270202', '2027-02'],
+    ['20270202', '20270302', '2027-03'],
+  ];
+  it.each(casos)('DTEND %s→%s vence em %s, com ou sem cartão cadastrado', (ini, fim, esperado) => {
+    // compras antigas de parcelas não podem puxar o mês
+    const p = parseOFX(ofx(ini, fim, [['20260801', 'Loja - Parcela 4/6']]));
+    expect(invoiceCompFromClosing(p.dtEnd, card)).toBe(esperado);
+    expect(invoiceCompFromClosing(p.dtEnd, undefined)).toBe(esperado);
+  });
+  it('parcelas futuras caem a partir do mês seguinte à fatura', () => {
+    const S = 'ser';
+    const s = snap('2026-12', [line({ instCur: 4, instTot: 6, seriesKey: S })]);
+    const r = project(data({ snapshots: [s], cards: [card], today: '2026-11-26' }));
+    const meses = r.windows.filter((w) => w.items.some((i) => i.origin === 'parcela')).map((w) => w.window.comp);
+    expect(meses).toEqual(['2027-01', '2027-02']);
   });
 });
