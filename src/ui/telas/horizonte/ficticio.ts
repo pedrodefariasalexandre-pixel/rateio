@@ -296,10 +296,10 @@ export function fonteFicticia(): HorizonteFonte {
       de.saldo -= t.cents;
       para.saldo += t.cents;
     },
-    async simular(itemId, ultimas) {
+    async simular(itemId, ultimas, pagoCents) {
       const item = d.janelas[0]?.cartao.find((x) => x.id === itemId);
       const valor = (item?.cents ?? 0) * ultimas;
-      const comDesconto = Math.round(valor * 0.925);
+      const comDesconto = pagoCents ?? Math.round(valor * 0.925);
       const rendimento = Math.round(valor * 0.0206);
       return {
         item: item?.nome ?? '',

@@ -118,6 +118,8 @@ export interface Simulacao {
   comDesconto: number;
   rendimento: number;
   vale: boolean;
+  /** Item dividido: não pode antecipar. */
+  bloqueado?: boolean;
 }
 
 export interface ResultadoImport {
@@ -141,7 +143,8 @@ export interface HorizonteFonte {
   conferirOfx(arquivos: { nome: string; texto: string }[]): Promise<ResultadoImport[]>;
   salvarOfx(r: ResultadoImport[]): Promise<number>;
   transferir(t: Transferencia): Promise<void>;
-  simular(itemId: string, ultimas: number): Promise<Simulacao>;
+  /** `pagoCents`: valor à vista oferecido pelo banco; sem ele, preço cheio. */
+  simular(itemId: string, ultimas: number, pagoCents?: number): Promise<Simulacao>;
   set13(considerar: boolean): Promise<void>;
   cobrirFuro(): Promise<void>;
 }

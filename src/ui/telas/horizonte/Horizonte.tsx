@@ -729,10 +729,11 @@ function Antecipar({
   onVoltar: () => void;
 }) {
   const [n, setN] = useState(3);
+  const [pago, setPago] = useState('');
   const [s, setS] = useState<Simulacao | null>(null);
   useEffect(() => {
-    fonte.simular(item.id, n).then(setS);
-  }, [fonte, item.id, n]);
+    fonte.simular(item.id, n, parseCents(pago) ?? undefined).then(setS);
+  }, [fonte, item.id, n, pago]);
   return (
     <div className="hz-g hz-card hz-narrow">
       <div className="hz-k">
@@ -748,22 +749,37 @@ function Antecipar({
           onChange={(e) => setN(Math.max(1, Number(e.target.value) || 1))}
         />
       </label>
-      {s && (
-        <>
-          <Row k="Valor das parcelas">
-            <b>{fmtC(s.valor)}</b>
-          </Row>
-          <Row k="Com desconto">
-            <b className="ok">{fmtC(s.comDesconto)}</b>
-          </Row>
-          <Row k="Rendimento da caixinha no período">
-            <b>{fmtC(s.rendimento)}</b>
-          </Row>
-          <div className={'hz-alert' + (s.vale ? ' good' : '')} role="status">
-            {s.vale ? '✓ Vale a pena' : '✗ Não compensa'}: desconto {fmtC(s.valor - s.comDesconto)}{' '}
-            {s.vale ? '>' : '≤'} rendimento {fmtC(s.rendimento)}.
-          </div>
-        </>
+      <label className="hz-fld">
+        <small>Valor à vista oferecido</small>
+        <input
+          inputMode="decimal"
+          value={pago}
+          onChange={(e) => setPago(e.target.value)}
+          placeholder="0,00"
+        />
+      </label>
+      {s?.bloqueado ? (
+        <div className="hz-alert danger" role="status">
+          🔒 Item dividido: não pode ser antecipado.
+        </div>
+      ) : (
+        s && (
+          <>
+            <Row k="Valor das parcelas">
+              <b>{fmtC(s.valor)}</b>
+            </Row>
+            <Row k="Com desconto">
+              <b className="ok">{fmtC(s.comDesconto)}</b>
+            </Row>
+            <Row k="Rendimento da caixinha no período">
+              <b>{fmtC(s.rendimento)}</b>
+            </Row>
+            <div className={'hz-alert' + (s.vale ? ' good' : '')} role="status">
+              {s.vale ? '✓ Vale a pena' : '✗ Não compensa'}: desconto{' '}
+              {fmtC(s.valor - s.comDesconto)} {s.vale ? '>' : '≤'} rendimento {fmtC(s.rendimento)}.
+            </div>
+          </>
+        )
       )}
       <p className="hz-sub small">
         🔒 Itens divididos não podem ser antecipados. Reimportar não traz as parcelas de volta.
