@@ -4,6 +4,7 @@ import './shell.css';
 import { openBalances } from '../lib/receivables';
 import { useRateio } from './AppContext';
 import { PessoasMemoriaAba } from './telas';
+import { HorizonteTela } from './telas/horizonte';
 import { FaturaFlow, STEPS, type Step } from './screens/main/FaturaFlow';
 import {
   BackupNagTopo,
@@ -14,6 +15,7 @@ import {
 } from './telas/adapters';
 
 const NAV = [
+  ['Horizonte', '🔭', 'Horizonte: próximos meses'],
   ['Relatórios', '📊', 'Relatórios'],
   ['Histórico', '🗂', 'Histórico e recebimentos'],
   ['Cobranças', '📌', 'Cobranças fixas'],
@@ -92,6 +94,8 @@ export function Shell({ onSignOut }: { onSignOut: () => void }) {
         <BackupNagTopo />
         {tab === 'Fatura' ? (
           <FaturaFlow step={step} setStep={setStep} />
+        ) : tab === 'Horizonte' ? (
+          <HorizonteTela />
         ) : tab === 'Histórico' ? (
           <HistoricoTela />
         ) : tab === 'Relatórios' ? (
