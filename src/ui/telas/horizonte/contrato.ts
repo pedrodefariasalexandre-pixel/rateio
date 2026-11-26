@@ -215,11 +215,13 @@ export function fonteDoContrato(
             motivo: `"${nome}" não é um OFX.`,
           };
         const card = x.cards.find((c) => c.acct === p.acct);
-        const due =
-          card && p.lines[0]?.date
-            ? engine.firstInvoiceComp(p.lines[p.lines.length - 1]!.date, card)
-            : null;
-        const comp = due ?? (p.lines[p.lines.length - 1]?.date ?? hoje()).slice(0, 7);
+        const ultimaData = p.lines
+          .map((l) => l.date)
+          .filter(Boolean)
+          .sort()
+          .pop();
+        const fechamento = p.dtEnd || ultimaData || hoje();
+        const comp = engine.invoiceCompFromClosing(fechamento, card);
         const s = snapshotFromOfx(p, comp, null);
         const dup = x.snapshots.some((o) => o.contentHash === s.contentHash);
         if (!dup) pendentes.push(s);

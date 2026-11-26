@@ -92,6 +92,19 @@ export function firstInvoiceComp(postedOn: ISODate, card: Card): Comp {
   return card.dueDay < card.closingDay ? addMonths(closeComp, 1) : closeComp;
 }
 
+/**
+ * Mês do vencimento a partir do fechamento do extrato (DTEND do OFX).
+ * Não usa as datas das compras: parcelas trazem a data da compra original e a ordem das linhas varia.
+ */
+export function invoiceCompFromClosing(closingDate: ISODate, card: Card | undefined): Comp {
+  const closeComp = compOf(closingDate);
+  const closingDay = card?.closingDay ?? +closingDate.slice(8, 10);
+  const dueDay = card?.dueDay;
+  // sem cartão cadastrado: fechamento no início do mês vence no mesmo mês; no fim, no seguinte
+  const nextMonth = dueDay != null ? dueDay < closingDay : closingDay > 15;
+  return nextMonth ? addMonths(closeComp, 1) : closeComp;
+}
+
 /** Saldo da caixinha pelos movimentos ('ajuste' = saldo informado manualmente). */
 export function pocketBalance(pocketId: string, moves: PocketMove[], upTo?: ISODate): Cents {
   let bal = 0;
@@ -852,6 +865,7 @@ export const engine: HorizonEngine = {
   exportCsv,
   weeks,
   firstInvoiceComp,
+  invoiceCompFromClosing,
 };
 
 // ---------------------------------------------------------------- OFX -> snapshot (RF02, RF04, RF05)

@@ -358,6 +358,7 @@ export interface HorizonEngine {
   exportCsv(result: HorizonResult): string;
   weeks(window: PayWindow, capCents: Cents, spentByWeek: Cents[]): WeekSlice[];
   firstInvoiceComp(postedOn: ISODate, card: Card): Comp;
+  invoiceCompFromClosing(closingDate: ISODate, card: Card | undefined): Comp;
 }
 
 export type SaveSnapshotOutcome =
