@@ -98,7 +98,7 @@ describe('fonteDoContrato', () => {
   });
 
   it('transfere criando caixinha nova e bloqueia acima do saldo', async () => {
-    const addMoves = vi.fn(async () => undefined);
+    const addMoves = vi.fn<(m: unknown[]) => Promise<void>>(async () => undefined);
     const upsertPocket = vi.fn(async () => undefined);
     const f = fonteDoContrato(repo({ addMoves, upsertPocket }));
     await f.transferir({ de: 'lz', para: '', nova: 'Fim de ano', cents: 20000, motivo: 'x' });
@@ -122,7 +122,7 @@ describe('fonteDoContrato', () => {
   });
 
   it('liga e desliga o 13º pelo salário', async () => {
-    const upsertIncome = vi.fn(async () => undefined);
+    const upsertIncome = vi.fn<(i: unknown) => Promise<void>>(async () => undefined);
     await fonteDoContrato(repo({ upsertIncome })).set13(true);
     expect(upsertIncome.mock.calls[0]![0]).toMatchObject({ thirteenth: { considered: true } });
   });
