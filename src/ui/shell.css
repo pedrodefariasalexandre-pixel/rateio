@@ -63,3 +63,17 @@ div.apptoast.err {
     justify-content: flex-end;
   }
 }
+/* Celular: 7 seções numa linha só (rola se faltar espaço) */
+@media (max-width: 640px) {
+  .topbar .topnav {
+    flex-wrap: nowrap;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topbar .topnav .btn.small {
+    flex: 1 0 44px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
