@@ -187,11 +187,29 @@ export interface HorizonData {
   weekly: WeeklyBudget;
   /** fração do Pedro por seriesKey/norm (0..1), vinda de owner_memory (RF14). */
   myShare: (line: InvoiceLine) => number;
+  /** Apelido/ocultar por chave do item (seriesKey ou norm) — RF46. */
+  prefs: ItemPref[];
   /** comp de hoje (início da projeção). */
   today: ISODate;
 }
 
+export interface ItemPref {
+  itemKey: string;
+  alias: string | null;
+  hidden: boolean;
+}
+
 // ---------------------------------------------------------------- saída do motor
+
+/** Semana financeira seg–dom dentro da janela (§8B). */
+export interface WeekSlice {
+  start: ISODate;
+  end: ISODate;
+  days: number;
+  allowance: Cents; // teto proporcional − estouro da semana anterior
+  spent: Cents;
+  carry: Cents; // estouro que passa para a próxima
+}
 
 export interface PayWindow {
   comp: Comp;
@@ -211,7 +229,8 @@ export type ItemOrigin =
   | 'semanas'
   | 'terceiro'
   | '13o'
-  | 'salario';
+  | 'salario'
+  | 'aporte';
 export type ItemStatus = 'comprometido' | 'previsto';
 
 export interface WindowItem {
@@ -337,11 +356,12 @@ export interface HorizonEngine {
     source: 'holerite' | 'previsto';
   };
   exportCsv(result: HorizonResult): string;
+  weeks(window: PayWindow, capCents: Cents, spentByWeek: Cents[]): WeekSlice[];
+  firstInvoiceComp(postedOn: ISODate, card: Card): Comp;
 }
 
 export type SaveSnapshotOutcome =
-  | { status: 'created' | 'unchanged' }
-  | { status: 'conflict'; existingId: string };
+  { status: 'created' | 'unchanged' } | { status: 'conflict'; existingId: string };
 
 export interface HorizonRepo {
   load(): Promise<Omit<HorizonData, 'myShare' | 'today'>>;
@@ -361,6 +381,7 @@ export interface HorizonRepo {
   addMoves(m: PocketMove[]): Promise<void>; // transferência = 2 moves numa transação
   undoTransfer(transferId: string): Promise<void>;
   upsertCard(c: Card): Promise<void>;
+  setPref(p: ItemPref): Promise<void>;
   setHolidays(h: Holiday[]): Promise<void>;
   setOverride(o: PayWindowOverride | { comp: Comp; salaryDate: null }): Promise<void>;
   saveSettings(s: Partial<HorizonSettings>, weekly?: WeeklyBudget): Promise<void>;
