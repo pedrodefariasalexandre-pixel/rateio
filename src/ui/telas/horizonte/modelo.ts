@@ -138,7 +138,7 @@ export interface Transferencia {
   motivo: string;
 }
 
-export interface HorizonteFonte {
+export interface HorizonteFonte extends HorizonteCadastro {
   carregar(meses: number): Promise<HorizonteDados>;
   conferirOfx(arquivos: { nome: string; texto: string }[]): Promise<ResultadoImport[]>;
   salvarOfx(r: ResultadoImport[]): Promise<number>;
@@ -147,4 +147,49 @@ export interface HorizonteFonte {
   simular(itemId: string, ultimas: number, pagoCents?: number): Promise<Simulacao>;
   set13(considerar: boolean): Promise<void>;
   cobrirFuro(): Promise<void>;
+}
+
+/** Cadastro do Horizonte (RF23/24/28/33/36/48): o que o usuário informa à mão. */
+export interface SalarioForm {
+  bruto: number;
+  liquido: number;
+  adiantamento: number;
+  diaAdiantamento: number;
+  diaUtil: number;
+  avos: number;
+}
+export interface FixaForm {
+  id?: string;
+  nome: string;
+  cents: number;
+  entrada: boolean;
+  dia: number;
+}
+export interface CaixinhaForm {
+  nome: string;
+  regra: 'piso' | 'acumula' | 'fonte' | 'livre';
+  saldo: number;
+  meta?: number;
+  aporte?: number;
+  reserva: boolean;
+}
+export interface HorizonteConfig {
+  salario: SalarioForm | null;
+  fixas: (FixaForm & { id: string })[];
+  tetoSemanal: number;
+}
+
+export interface HorizonteCadastro {
+  config(): Promise<HorizonteConfig>;
+  salvarSalario(s: SalarioForm): Promise<void>;
+  salvarFixa(f: FixaForm): Promise<void>;
+  apagarFixa(id: string): Promise<void>;
+  criarCaixinha(c: CaixinhaForm): Promise<void>;
+  movimentar(
+    caixinha: string,
+    tipo: 'aporte' | 'retirada',
+    cents: number,
+    motivo: string,
+  ): Promise<void>;
+  salvarTeto(cents: number): Promise<void>;
 }

@@ -31,6 +31,7 @@ const MESES = [
   'Novembro',
   'Dezembro',
 ];
+const uid = () => globalThis.crypto.randomUUID();
 const hoje = () => new Date().toISOString().slice(0, 10);
 const dm = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 const sigla = (s: string) =>
@@ -285,8 +286,8 @@ export function fonteDoContrato(
       if (!w?.furo) return;
       const moves = w.furo.plan
         .filter((p) => p.pocketId && p.cents > 0 && !p.needsConfirm)
-        .map((p, k) => ({
-          id: `furo-${w.window.comp}-${k}-${Date.now()}`,
+        .map((p) => ({
+          id: uid(),
           pocketId: p.pocketId!,
           kind: 'retirada' as const,
           cents: p.cents,
@@ -296,7 +297,146 @@ export function fonteDoContrato(
           imprevisto: true,
           itemId: null,
         }));
-      if (moves.length) await repo.addMoves(moves);
+      if (!moves.length)
+        throw new Error('Crie as caixinhas Semanas e Reserva (com saldo) para cobrir o furo.');
+      await repo.addMoves(moves);
+      d = null;
+    },
+    async config() {
+      const x = await dados();
+      const i = x.incomes.find((v) => v.group === 'eu') ?? x.incomes[0];
+      return {
+        salario: i
+          ? {
+              bruto: i.grossCents,
+              liquido: i.netCents,
+              adiantamento: i.advanceCents,
+              diaAdiantamento: i.advanceDay,
+              diaUtil: i.salaryBusinessDay,
+              avos: i.thirteenth.avos,
+            }
+          : null,
+        fixas: x.fixed
+          .filter((f) => !f.thirdParty)
+          .map((f) => ({
+            id: f.id,
+            nome: f.alias ?? f.name,
+            cents: f.amountCents,
+            entrada: f.direction === 'entrada',
+            dia: f.recurrence.kind === 'semanal' ? 1 : f.recurrence.day,
+          })),
+        tetoSemanal: x.weekly.capCents,
+      };
+    },
+    async salvarSalario(s) {
+      const x = await dados();
+      const i = x.incomes.find((v) => v.group === 'eu') ?? x.incomes[0];
+      if (s.liquido <= 0) throw new Error('Informe o salário líquido.');
+      if (s.adiantamento > s.liquido) throw new Error('O adiantamento não pode passar do líquido.');
+      await repo.upsertIncome({
+        id: i?.id ?? uid(),
+        name: i?.name ?? 'Salário',
+        group: 'eu',
+        grossCents: Math.max(s.bruto, s.liquido),
+        deductions: i?.deductions ?? { inss: 0, irrf: 0, consignado: 0, outros: 0 },
+        netCents: s.liquido,
+        advanceDay: s.diaAdiantamento,
+        advanceCents: s.adiantamento,
+        salaryBusinessDay: s.diaUtil,
+        thirteenth: {
+          considered: i?.thirteenth.considered ?? false,
+          avos: s.avos,
+          firstDate: i?.thirteenth.firstDate ?? null,
+          secondDate: i?.thirteenth.secondDate ?? null,
+          firstNetCents: i?.thirteenth.firstNetCents ?? null,
+          secondNetCents: i?.thirteenth.secondNetCents ?? null,
+          secondDeductionsCents: i?.thirteenth.secondDeductionsCents ?? 0,
+        },
+      });
+      d = null;
+    },
+    async salvarFixa(f) {
+      if (!f.nome.trim()) throw new Error('Dê um nome à conta.');
+      if (f.cents <= 0) throw new Error('Informe um valor maior que zero.');
+      const x = await dados();
+      const old = f.id ? x.fixed.find((v) => v.id === f.id) : undefined;
+      await repo.upsertFixed({
+        id: old?.id ?? uid(),
+        name: f.nome.trim(),
+        alias: null,
+        hidden: old?.hidden ?? false,
+        direction: f.entrada ? 'entrada' : 'saida',
+        amountCents: f.cents,
+        recurrence: { kind: 'mensal', day: Math.min(31, Math.max(1, f.dia)) },
+        endComp: old?.endComp ?? null,
+        isSubscription: old?.isSubscription ?? false,
+        sourcePocketId: old?.sourcePocketId ?? null,
+        thirdParty: null,
+      });
+      d = null;
+    },
+    async apagarFixa(id) {
+      await repo.deleteFixed(id);
+      d = null;
+    },
+    async criarCaixinha(c) {
+      if (!c.nome.trim()) throw new Error('Dê um nome à caixinha.');
+      const x = await dados();
+      const id = uid();
+      const reserva = c.reserva && !x.pockets.some((p) => p.isReserve && !p.archived);
+      await repo.upsertPocket({
+        id,
+        name: c.nome.trim(),
+        rule: c.regra,
+        floorCents: c.regra === 'piso' ? (c.meta ?? 0) : 0,
+        goalCents: c.meta && c.meta > 0 ? c.meta : null,
+        goalComp: null,
+        monthlyCents: c.aporte ?? 0,
+        yieldPctMonth: 0,
+        isReserve: reserva,
+        isWeeks: false,
+        archived: false,
+      });
+      if (c.saldo > 0)
+        await repo.addMoves([
+          {
+            id: uid(),
+            pocketId: id,
+            kind: 'ajuste',
+            cents: c.saldo,
+            onDate: x.today,
+            reason: 'Saldo inicial',
+            transferId: null,
+            imprevisto: false,
+            itemId: null,
+          },
+        ]);
+      d = null;
+    },
+    async movimentar(caixinha, tipo, cents, motivo) {
+      const x = await dados();
+      if (cents <= 0) throw new Error('Informe um valor maior que zero.');
+      if (tipo === 'retirada' && cents > engine.pocketBalance(caixinha, x.moves, x.today))
+        throw new Error('Saldo insuficiente na caixinha.');
+      await repo.addMoves([
+        {
+          id: uid(),
+          pocketId: caixinha,
+          kind: tipo,
+          cents,
+          onDate: x.today,
+          reason: motivo.slice(0, 120),
+          transferId: null,
+          imprevisto: false,
+          itemId: null,
+        },
+      ]);
+      d = null;
+    },
+    async salvarTeto(cents) {
+      if (cents < 0) throw new Error('Valor inválido.');
+      const x = await dados();
+      await repo.saveSettings({}, { capCents: cents, weeksPocketId: x.weekly.weeksPocketId });
       d = null;
     },
   };

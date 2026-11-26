@@ -2,7 +2,9 @@
 import type {
   Caixinha,
   HorizonteDados,
+  FixaForm,
   HorizonteFonte,
+  SalarioForm,
   Item,
   Janela,
   ResultadoImport,
@@ -253,9 +255,16 @@ export function dadosFicticios(meses = 6): HorizonteDados {
 
 export function fonteFicticia(): HorizonteFonte {
   let d = dadosFicticios();
+  let sal: SalarioForm | null = null;
+  let fixas: (FixaForm & { id: string })[] = [];
   return {
     async carregar(meses) {
-      d = { ...dadosFicticios(meses), caixinhas: d.caixinhas, decimo: d.decimo };
+      d = {
+        ...dadosFicticios(meses),
+        caixinhas: d.caixinhas,
+        decimo: d.decimo,
+        tetoSemanal: d.tetoSemanal,
+      };
       return d;
     },
     async conferirOfx(arquivos) {
@@ -315,6 +324,40 @@ export function fonteFicticia(): HorizonteFonte {
     },
     async cobrirFuro() {
       d.furo = undefined;
+    },
+    async config() {
+      return { salario: sal, fixas, tetoSemanal: d.tetoSemanal };
+    },
+    async salvarSalario(s) {
+      sal = s;
+    },
+    async salvarFixa(f) {
+      const id = f.id ?? `fx${fixas.length + 1}`;
+      fixas = [...fixas.filter((x) => x.id !== id), { ...f, id }];
+    },
+    async apagarFixa(id) {
+      fixas = fixas.filter((x) => x.id !== id);
+    },
+    async criarCaixinha(c) {
+      d.caixinhas.push({
+        id: `cx${d.caixinhas.length + 1}`,
+        nome: c.nome,
+        icone: '◇',
+        regra: c.regra,
+        saldo: c.saldo,
+        meta: c.meta,
+        aporte: c.aporte,
+      });
+    },
+    async movimentar(id, tipo, cents) {
+      const c = d.caixinhas.find((x) => x.id === id);
+      if (!c) throw new Error('Caixinha não encontrada.');
+      if (tipo === 'retirada' && cents > c.saldo)
+        throw new Error('Saldo insuficiente na caixinha.');
+      c.saldo += tipo === 'aporte' ? cents : -cents;
+    },
+    async salvarTeto(cents) {
+      d.tetoSemanal = cents;
     },
   };
 }

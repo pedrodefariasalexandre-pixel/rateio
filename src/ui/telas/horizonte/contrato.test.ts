@@ -99,7 +99,7 @@ describe('fonteDoContrato', () => {
 
   it('transfere criando caixinha nova e bloqueia acima do saldo', async () => {
     const addMoves = vi.fn<(m: unknown[]) => Promise<void>>(async () => undefined);
-    const upsertPocket = vi.fn(async () => undefined);
+    const upsertPocket = vi.fn<HorizonRepo['upsertPocket']>(async () => undefined);
     const f = fonteDoContrato(repo({ addMoves, upsertPocket }));
     await f.transferir({ de: 'lz', para: '', nova: 'Fim de ano', cents: 20000, motivo: 'x' });
     expect(upsertPocket).toHaveBeenCalledOnce();
@@ -143,5 +143,55 @@ describe('minhaParte', () => {
     expect(f(l('MERCADO', 10000))).toBe(0.5);
     expect(f(l('ACADEMIA', 12900))).toBe(0);
     expect(f(l('NOVA LOJA', 5000))).toBe(1);
+  });
+});
+
+const UUID = /^[0-9a-f-]{36}$/;
+describe('fonteDoContrato — cadastro', () => {
+  it('salário, fixa, caixinha, movimento e teto vão ao repo com ids uuid', async () => {
+    const upsertIncome = vi.fn<HorizonRepo['upsertIncome']>(async () => undefined);
+    const upsertFixed = vi.fn<HorizonRepo['upsertFixed']>(async () => undefined);
+    const upsertPocket = vi.fn<HorizonRepo['upsertPocket']>(async () => undefined);
+    const addMoves = vi.fn<HorizonRepo['addMoves']>(async () => undefined);
+    const saveSettings = vi.fn<HorizonRepo['saveSettings']>(async () => undefined);
+    const f = fonteDoContrato(
+      repo({
+        load: async () => ({ ...base(), incomes: [] }),
+        upsertIncome,
+        upsertFixed,
+        upsertPocket,
+        addMoves,
+        saveSettings,
+      }),
+    );
+    expect((await f.config()).salario).toBeNull();
+    await f.salvarSalario({
+      bruto: 0,
+      liquido: 500000,
+      adiantamento: 200000,
+      diaAdiantamento: 15,
+      diaUtil: 5,
+      avos: 12,
+    });
+    expect(upsertIncome.mock.calls[0]![0]).toMatchObject({ netCents: 500000, grossCents: 500000 });
+    expect(upsertIncome.mock.calls[0]![0].id).toMatch(UUID);
+    await f.salvarFixa({ nome: 'Aluguel', cents: 120000, entrada: false, dia: 10 });
+    expect(upsertFixed.mock.calls[0]![0]).toMatchObject({
+      direction: 'saida',
+      recurrence: { kind: 'mensal', day: 10 },
+    });
+    await expect(f.salvarFixa({ nome: '', cents: 1, entrada: false, dia: 1 })).rejects.toThrow();
+    await f.criarCaixinha({ nome: 'Viagem', regra: 'livre', saldo: 10000, reserva: false });
+    expect(upsertPocket.mock.calls[0]![0].id).toMatch(UUID);
+    expect(addMoves.mock.calls[0]![0][0]).toMatchObject({ kind: 'ajuste', cents: 10000 });
+    await f.movimentar('lz', 'aporte', 500, '');
+    await expect(f.movimentar('lz', 'retirada', 999999, '')).rejects.toThrow('Saldo insuficiente');
+    await f.salvarTeto(35000);
+    expect(saveSettings).toHaveBeenCalledWith({}, { capCents: 35000, weeksPocketId: null });
+  });
+
+  it('salvar 13º sem salário explica o motivo', async () => {
+    const f = fonteDoContrato(repo({ load: async () => ({ ...base(), incomes: [] }) }));
+    await expect(f.set13(true)).rejects.toThrow('Cadastre o salário');
   });
 });

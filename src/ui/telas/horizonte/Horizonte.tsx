@@ -4,6 +4,8 @@ import './horizonte.css';
 import { fmtC, parseCents } from '../../../lib/money';
 import type {
   Caixinha,
+  CaixinhaForm,
+  HorizonteConfig,
   HorizonteDados,
   HorizonteFonte,
   Item,
@@ -12,13 +14,15 @@ import type {
   Simulacao,
 } from './modelo';
 
-type Vista = 'geral' | 'janela' | 'caixinhas' | 'semanas' | 'decimo' | 'importar' | 'antecipar';
+type Vista =
+  'geral' | 'janela' | 'caixinhas' | 'semanas' | 'decimo' | 'ajustes' | 'importar' | 'antecipar';
 const ABAS: [Vista, string][] = [
   ['geral', 'Visão geral'],
   ['janela', 'Janela'],
   ['caixinhas', 'Caixinhas'],
   ['semanas', 'Semanas'],
   ['decimo', '13º'],
+  ['ajustes', 'Cadastro'],
 ];
 const FONTE = {
   salario: ['Salário', 's1'],
@@ -150,11 +154,16 @@ export function Horizonte({ fonte }: { fonte: HorizonteFonte }) {
         />
       ) : vista === 'antecipar' && antecipar ? (
         <Antecipar fonte={fonte} item={antecipar} onVoltar={() => setVista('janela')} />
+      ) : vazio && vista === 'ajustes' ? (
+        <Cadastro fonte={fonte} recarregar={recarregar} onVoltar={() => setVista('geral')} />
       ) : vazio ? (
         <Estado ic="◐" tom="info" titulo="Seu horizonte está vazio">
           <p>Cadastre seu salário e importe a fatura para ver quanto sobra nos próximos meses.</p>
-          <button className="hz-btn pri" onClick={() => setVista('importar')}>
-            Começar
+          <button className="hz-btn pri" onClick={() => setVista('ajustes')}>
+            Cadastrar salário e contas
+          </button>
+          <button className="hz-btn" onClick={() => setVista('importar')}>
+            Importar OFX
           </button>
         </Estado>
       ) : (
@@ -192,6 +201,7 @@ export function Horizonte({ fonte }: { fonte: HorizonteFonte }) {
           {vista === 'caixinhas' && <Caixinhas d={d} fonte={fonte} recarregar={recarregar} />}
           {vista === 'semanas' && <Semanas d={d} />}
           {vista === 'decimo' && <Decimo d={d} fonte={fonte} recarregar={recarregar} />}
+          {vista === 'ajustes' && <Cadastro fonte={fonte} recarregar={recarregar} />}
         </>
       )}
     </section>
@@ -341,6 +351,7 @@ function FuroCard({
   recarregar: () => void;
 }) {
   const [emg, setEmg] = useState(false);
+  const [msg, setMsg] = useState<Msg>(null);
   return (
     <div className="hz-g hz-card err" role="alert">
       <div className="hz-top">
@@ -363,7 +374,13 @@ function FuroCard({
           emergência
         </span>
       </label>
-      <button className="hz-btn pri" onClick={() => fonte.cobrirFuro().then(recarregar)}>
+      <Aviso msg={msg} />
+      <button
+        className="hz-btn pri"
+        onClick={() =>
+          fonte.cobrirFuro().then(recarregar, (e: unknown) => setMsg({ ok: false, t: texto(e) }))
+        }
+      >
         Cobrir com Semanas + Reserva{emg ? ' + Emergência' : ''}
       </button>
     </div>
@@ -626,11 +643,330 @@ function Caixinhas({
             {msg.t}
           </div>
         )}
-        <button className="hz-btn pri full" type="submit">
+        <button className="hz-btn pri full" type="submit" disabled={!cx.length}>
           Transferir
         </button>
       </form>
+      <NovaCaixinha fonte={fonte} recarregar={recarregar} />
+      {cx.length > 0 && <Movimentar cx={cx} fonte={fonte} recarregar={recarregar} />}
     </div>
+  );
+}
+
+type Msg = { ok: boolean; t: string } | null;
+const texto = (e: unknown) => (e instanceof Error ? e.message : String(e));
+function Aviso({ msg }: { msg: Msg }) {
+  return msg ? (
+    <div className={'hz-alert' + (msg.ok ? ' good' : ' danger')} role="status">
+      {msg.t}
+    </div>
+  ) : null;
+}
+function Campo(p: {
+  rot: string;
+  v: string;
+  set: (v: string) => void;
+  dec?: boolean;
+  ph?: string;
+}) {
+  return (
+    <label className="hz-fld">
+      <small>{p.rot}</small>
+      <input
+        inputMode={p.dec ? 'decimal' : undefined}
+        value={p.v}
+        onChange={(e) => p.set(e.target.value)}
+        placeholder={p.ph ?? (p.dec ? '0,00' : undefined)}
+      />
+    </label>
+  );
+}
+const cents = (v: string) => parseCents(v) ?? 0;
+const inteiro = (v: string, pad: number) => {
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) ? n : pad;
+};
+const reais = (c: number) => (c ? (c / 100).toFixed(2).replace('.', ',') : '');
+
+function NovaCaixinha({ fonte, recarregar }: { fonte: HorizonteFonte; recarregar: () => void }) {
+  const [nome, setNome] = useState('');
+  const [regra, setRegra] = useState<CaixinhaForm['regra']>('livre');
+  const [saldo, setSaldo] = useState('');
+  const [meta, setMeta] = useState('');
+  const [aporte, setAporte] = useState('');
+  const [reserva, setReserva] = useState(false);
+  const [msg, setMsg] = useState<Msg>(null);
+  const enviar = () =>
+    fonte
+      .criarCaixinha({
+        nome,
+        regra,
+        saldo: cents(saldo),
+        meta: cents(meta) || undefined,
+        aporte: cents(aporte) || undefined,
+        reserva,
+      })
+      .then(
+        () => {
+          setMsg({ ok: true, t: `Caixinha "${nome.trim()}" criada.` });
+          setNome('');
+          setSaldo('');
+          setMeta('');
+          setAporte('');
+          recarregar();
+        },
+        (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+      );
+  return (
+    <form
+      className="hz-g hz-card"
+      aria-label="Nova caixinha"
+      onSubmit={(e) => (e.preventDefault(), enviar())}
+    >
+      <div className="hz-k">Nova caixinha</div>
+      <Campo rot="Nome" v={nome} set={setNome} ph="Ex.: Emergência" />
+      <label className="hz-fld">
+        <small>Regra</small>
+        <select value={regra} onChange={(e) => setRegra(e.target.value as CaixinhaForm['regra'])}>
+          <option value="livre">Livre</option>
+          <option value="acumula">Acumula (nunca diminui)</option>
+          <option value="piso">Piso (emergência)</option>
+          <option value="fonte">Fonte (paga itens)</option>
+        </select>
+      </label>
+      <Campo rot="Saldo atual" v={saldo} set={setSaldo} dec />
+      <Campo rot={regra === 'piso' ? 'Piso' : 'Meta (opcional)'} v={meta} set={setMeta} dec />
+      <Campo rot="Aporte mensal (opcional)" v={aporte} set={setAporte} dec />
+      <label className="hz-tg">
+        <input type="checkbox" checked={reserva} onChange={(e) => setReserva(e.target.checked)} />
+        <span>É a Reserva (recebe a sobra do mês)</span>
+      </label>
+      <Aviso msg={msg} />
+      <button className="hz-btn pri full" type="submit">
+        Criar caixinha
+      </button>
+    </form>
+  );
+}
+
+function Movimentar(p: { cx: Caixinha[]; fonte: HorizonteFonte; recarregar: () => void }) {
+  const [id, setId] = useState(p.cx[0]!.id);
+  const [tipo, setTipo] = useState<'aporte' | 'retirada'>('aporte');
+  const [valor, setValor] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [msg, setMsg] = useState<Msg>(null);
+  const enviar = () => {
+    const c = cents(valor);
+    p.fonte.movimentar(id, tipo, c, motivo).then(
+      () => {
+        setMsg({
+          ok: true,
+          t: `${tipo === 'aporte' ? 'Aporte' : 'Retirada'} de ${fmtC(c)} feito.`,
+        });
+        setValor('');
+        setMotivo('');
+        p.recarregar();
+      },
+      (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+    );
+  };
+  return (
+    <form
+      className="hz-g hz-card"
+      aria-label="Aportar ou retirar"
+      onSubmit={(e) => (e.preventDefault(), enviar())}
+    >
+      <div className="hz-k">Aportar ou retirar</div>
+      <label className="hz-fld">
+        <small>Caixinha</small>
+        <select value={id} onChange={(e) => setId(e.target.value)}>
+          {p.cx.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome} · {fmtC(c.saldo)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="hz-fld">
+        <small>Movimento</small>
+        <select value={tipo} onChange={(e) => setTipo(e.target.value as 'aporte' | 'retirada')}>
+          <option value="aporte">Aporte</option>
+          <option value="retirada">Retirada</option>
+        </select>
+      </label>
+      <Campo rot="Valor do movimento" v={valor} set={setValor} dec />
+      <Campo rot="Motivo do movimento" v={motivo} set={setMotivo} ph="Opcional" />
+      <Aviso msg={msg} />
+      <button className="hz-btn pri full" type="submit">
+        Registrar
+      </button>
+    </form>
+  );
+}
+
+/** Cadastro: salário e janela (RF33/RF48), contas fixas (RF23/24) e teto semanal (RF36). */
+function Cadastro(p: { fonte: HorizonteFonte; recarregar: () => void; onVoltar?: () => void }) {
+  const [cfg, setCfg] = useState<HorizonteConfig | null>(null);
+  const [erro, setErro] = useState('');
+  const ler = useCallback(
+    () => p.fonte.config().then(setCfg, (e: unknown) => setErro(texto(e))),
+    [p.fonte],
+  );
+  useEffect(() => void ler(), [ler]);
+  const depois = () => (ler(), p.recarregar());
+  if (erro)
+    return (
+      <Estado ic="!" tom="danger" titulo="Não conseguimos abrir o cadastro" erro>
+        <p>{erro}</p>
+      </Estado>
+    );
+  if (!cfg) return <p className="hz-sub">Carregando o cadastro…</p>;
+  return (
+    <div className="hz-grid two">
+      <Salario cfg={cfg} fonte={p.fonte} depois={depois} />
+      <Fixas cfg={cfg} fonte={p.fonte} depois={depois} />
+      <Teto cfg={cfg} fonte={p.fonte} depois={depois} />
+      {p.onVoltar && (
+        <button className="hz-btn" onClick={p.onVoltar}>
+          Voltar
+        </button>
+      )}
+    </div>
+  );
+}
+
+type CadP = { cfg: HorizonteConfig; fonte: HorizonteFonte; depois: () => void };
+
+function Salario({ cfg, fonte, depois }: CadP) {
+  const s = cfg.salario;
+  const [bruto, setBruto] = useState(reais(s?.bruto ?? 0));
+  const [liq, setLiq] = useState(reais(s?.liquido ?? 0));
+  const [adi, setAdi] = useState(reais(s?.adiantamento ?? 0));
+  const [diaA, setDiaA] = useState(String(s?.diaAdiantamento ?? 15));
+  const [util, setUtil] = useState(String(s?.diaUtil ?? 5));
+  const [avos, setAvos] = useState(String(s?.avos ?? 12));
+  const [msg, setMsg] = useState<Msg>(null);
+  const enviar = () =>
+    fonte
+      .salvarSalario({
+        bruto: cents(bruto),
+        liquido: cents(liq),
+        adiantamento: cents(adi),
+        diaAdiantamento: Math.min(28, Math.max(1, inteiro(diaA, 15))),
+        diaUtil: Math.min(23, Math.max(1, inteiro(util, 5))),
+        avos: Math.min(12, Math.max(0, inteiro(avos, 12))),
+      })
+      .then(
+        () => (setMsg({ ok: true, t: 'Salário salvo.' }), depois()),
+        (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+      );
+  return (
+    <form
+      className="hz-g hz-card"
+      aria-label="Salário e janela"
+      onSubmit={(e) => (e.preventDefault(), enviar())}
+    >
+      <div className="hz-k">Salário e janela de pagamento</div>
+      <Campo rot="Salário bruto" v={bruto} set={setBruto} dec />
+      <Campo rot="Salário líquido do mês" v={liq} set={setLiq} dec />
+      <Campo rot="Valor do adiantamento (parte do líquido)" v={adi} set={setAdi} dec />
+      <Campo rot="Dia do adiantamento" v={diaA} set={setDiaA} />
+      <Campo rot="Salário cai no dia útil nº" v={util} set={setUtil} />
+      <Campo rot="Avos do 13º" v={avos} set={setAvos} />
+      <Aviso msg={msg} />
+      <button className="hz-btn pri full" type="submit">
+        Salvar salário
+      </button>
+    </form>
+  );
+}
+
+function Fixas({ cfg, fonte, depois }: CadP) {
+  const [nome, setNome] = useState('');
+  const [valor, setValor] = useState('');
+  const [dia, setDia] = useState('10');
+  const [entrada, setEntrada] = useState(false);
+  const [msg, setMsg] = useState<Msg>(null);
+  const enviar = () =>
+    fonte.salvarFixa({ nome, cents: cents(valor), entrada, dia: inteiro(dia, 10) }).then(
+      () => (
+        setMsg({ ok: true, t: `"${nome.trim()}" salva.` }),
+        setNome(''),
+        setValor(''),
+        depois()
+      ),
+      (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+    );
+  const apagar = (id: string) =>
+    fonte.apagarFixa(id).then(depois, (e: unknown) => setMsg({ ok: false, t: texto(e) }));
+  return (
+    <form
+      className="hz-g hz-card"
+      aria-label="Contas fixas"
+      onSubmit={(e) => (e.preventDefault(), enviar())}
+    >
+      <div className="hz-k">Contas fixas (todo mês)</div>
+      {cfg.fixas.length === 0 ? (
+        <p className="hz-sub small">Nenhuma conta fixa ainda.</p>
+      ) : (
+        <div className="hz-list">
+          {cfg.fixas.map((f) => (
+            <div className="hz-it" key={f.id}>
+              <div className="n">
+                <b>{f.nome}</b>
+                <small>
+                  {f.entrada ? 'Entrada' : 'Saída'} · dia {f.dia}
+                </small>
+              </div>
+              <div className="val">{sinal(f.entrada ? f.cents : -f.cents)}</div>
+              <button
+                type="button"
+                className="hz-link"
+                aria-label={`Apagar ${f.nome}`}
+                onClick={() => apagar(f.id)}
+              >
+                Apagar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <Campo rot="Nome" v={nome} set={setNome} ph="Ex.: Aluguel" />
+      <Campo rot="Valor" v={valor} set={setValor} dec />
+      <Campo rot="Dia do mês" v={dia} set={setDia} />
+      <label className="hz-tg">
+        <input type="checkbox" checked={entrada} onChange={(e) => setEntrada(e.target.checked)} />
+        <span>É uma entrada (dinheiro que cai todo mês)</span>
+      </label>
+      <Aviso msg={msg} />
+      <button className="hz-btn pri full" type="submit">
+        Adicionar conta fixa
+      </button>
+    </form>
+  );
+}
+
+function Teto({ cfg, fonte, depois }: CadP) {
+  const [v, setV] = useState(reais(cfg.tetoSemanal));
+  const [msg, setMsg] = useState<Msg>(null);
+  const enviar = () =>
+    fonte.salvarTeto(cents(v)).then(
+      () => (setMsg({ ok: true, t: 'Teto semanal salvo.' }), depois()),
+      (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+    );
+  return (
+    <form
+      className="hz-g hz-card"
+      aria-label="Teto semanal"
+      onSubmit={(e) => (e.preventDefault(), enviar())}
+    >
+      <div className="hz-k">Teto de gasto por semana</div>
+      <Campo rot="Teto semanal" v={v} set={setV} dec />
+      <Aviso msg={msg} />
+      <button className="hz-btn pri full" type="submit">
+        Salvar teto
+      </button>
+    </form>
   );
 }
 
@@ -678,6 +1014,7 @@ function Decimo({
   recarregar: () => void;
 }) {
   const t = d.decimo;
+  const [msg13, setMsg13] = useState<Msg>(null);
   return (
     <div className="hz-g hz-card">
       <div className="hz-top">
@@ -687,9 +1024,14 @@ function Decimo({
             type="checkbox"
             role="switch"
             checked={t.considerar}
-            onChange={(e) => fonte.set13(e.target.checked).then(recarregar)}
+            onChange={(e) =>
+              fonte
+                .set13(e.target.checked)
+                .then(recarregar, (x: unknown) => setMsg13({ ok: false, t: texto(x) }))
+            }
           />
           {t.considerar ? 'considerar' : 'não considerar'}
+          <Aviso msg={msg13} />
         </label>
       </div>
       <div className="hz-f4">
