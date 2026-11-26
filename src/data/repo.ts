@@ -26,8 +26,6 @@ export interface Repo {
   save(d: Data): Promise<void>;
   /** "Restaurar backup". Sem modo e com conflito de parcelas, devolve needs_decision sem mudar nada. */
   importBackup(text: string, mode?: ParcelasMode): Promise<ImportOutcome>;
-  /** Minutos sem uso até travar com o PIN. */
-  inactivityMinutes(): Promise<number>;
 }
 
 /** Conta nova: o banco exporta `people: []`, que o backup normal recusa. Aqui vira "sem pessoas" (usa o padrão). */
@@ -104,10 +102,6 @@ export const supabaseRepo = (): Repo => {
         };
       return { status: 'ok' };
     },
-    async inactivityMinutes() {
-      const { data } = await sb.from('settings').select('inactivity_minutes').maybeSingle();
-      return (data as { inactivity_minutes?: number } | null)?.inactivity_minutes ?? 5;
-    },
   };
 };
 
@@ -133,9 +127,6 @@ export const localRepo = (storage: Storage = localStorage): Repo => {
       if (p.d.parcelas && c.lost && !mode) return { status: 'needs_decision', ...c };
       storage.setItem(KEY, backupText(applyBackup(cur, p.d, mode ?? null)));
       return { status: 'ok' };
-    },
-    async inactivityMinutes() {
-      return 5;
     },
   };
 };

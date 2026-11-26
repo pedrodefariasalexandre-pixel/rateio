@@ -18,10 +18,6 @@
   font-size: 1rem;
   text-align: left;
 }
-.gate label input[inputmode='numeric'] {
-  text-align: center;
-  letter-spacing: 0.3em;
-}
 .gate button {
   min-height: 44px;
 }

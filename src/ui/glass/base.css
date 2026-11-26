@@ -150,7 +150,7 @@ dialog::backdrop {
   color: var(--ink);
 }
 
-/* login e PIN */
+/* login */
 .gate {
   border-radius: var(--radius-lg);
   background: var(--glass-bg-strong);

@@ -4,9 +4,6 @@ test('aba Horizonte abre pela navegação e mostra a visão geral', async ({ pag
   const erros: string[] = [];
   page.on('pageerror', (e) => erros.push(e.message));
   await page.goto('/');
-  await page.getByLabel('PIN', { exact: true }).fill('1234');
-  await page.getByLabel('Repita o PIN').fill('1234');
-  await page.getByRole('button', { name: 'Criar PIN' }).click();
   await page
     .getByRole('navigation', { name: 'Seções' })
     .getByRole('button', { name: 'Horizonte' })

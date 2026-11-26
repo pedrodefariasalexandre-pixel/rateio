@@ -13,9 +13,6 @@ const FATURA = ofx({
 
 async function entrar(page: Page) {
   await page.goto('/');
-  await page.getByLabel('PIN', { exact: true }).fill('1234');
-  await page.getByLabel('Repita o PIN').fill('1234');
-  await page.getByRole('button', { name: 'Criar PIN' }).click();
   await expect(page.getByRole('heading', { name: /Divida a fatura/ })).toBeVisible();
 }
 

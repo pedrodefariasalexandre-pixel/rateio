@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { backupText } from '../lib/backup';
 import { data } from '../test/fixtures';
-import { localAuth } from './auth';
 import { fromBackupText, localRepo } from './repo';
 
 const mem = (): Storage => {
@@ -33,19 +32,6 @@ describe('localRepo', () => {
     const r = localRepo(mem());
     expect(await r.importBackup(backupText(data()))).toEqual({ status: 'ok' });
     expect((await r.importBackup('lixo')).status).toBe('invalid');
-  });
-});
-
-describe('localAuth', () => {
-  it('cria, confere e reseta o PIN', async () => {
-    const a = localAuth(mem());
-    expect(await a.setPin('12')).toBe('invalid_format');
-    expect(await a.setPin('1234')).toBe('ok');
-    expect(await a.setPin('5678')).toBe('already_configured');
-    expect((await a.verifyPin('0000')).result).toBe('invalid');
-    expect((await a.verifyPin('1234')).result).toBe('ok');
-    await a.resetPin();
-    expect((await a.pinStatus()).configured).toBe(false);
   });
 });
 
