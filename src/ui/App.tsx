@@ -12,12 +12,8 @@ export function App() {
   const local = isLocalMode || !isSupabaseConfigured;
   const auth = useMemo(() => (local ? localAuth() : supabaseAuth()), [local]);
   const repo = useMemo(() => (local ? localRepo() : supabaseRepo()), [local]);
-  const [mins, setMins] = useState(5);
-  useEffect(() => {
-    repo.inactivityMinutes().then(setMins, () => {});
-  }, [repo]);
   return (
-    <Gate auth={auth} lockMinutes={mins}>
+    <Gate auth={auth}>
       <Loaded repo={repo} onSignOut={() => void auth.signOut()} />
     </Gate>
   );

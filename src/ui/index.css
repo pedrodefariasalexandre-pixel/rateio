@@ -1626,7 +1626,7 @@ dialog[open] {
   }
 }
 
-/* ===== shell do port (login, PIN, abas, banner) ===== */
+/* ===== shell do port (login, abas, banner) ===== */
 .gate {
   max-width: 360px;
   margin: 12vh auto 0;

@@ -53,7 +53,6 @@ function setup(items = txs(), d: Data = data()) {
     load: async () => d,
     save: async (x) => void saved.push(structuredClone(x)),
     importBackup: async () => ({ status: 'ok' }),
-    inactivityMinutes: async () => 5,
   };
   const onBack = vi.fn(),
     onClosed = vi.fn();

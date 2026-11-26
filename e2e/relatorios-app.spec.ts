@@ -86,9 +86,6 @@ test('aba Relatórios do app mostra os meses fechados salvos (dados sintéticos)
   const texto = backupSintetico();
   await page.addInitScript((t) => localStorage.setItem('rateio.local', t), texto);
   await page.goto('/');
-  await page.getByLabel('PIN', { exact: true }).fill('1234');
-  await page.getByLabel('Repita o PIN').fill('1234');
-  await page.getByRole('button', { name: 'Criar PIN' }).click();
   await page
     .getByRole('navigation', { name: 'Seções' })
     .getByRole('button', { name: 'Relatórios' })

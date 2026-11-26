@@ -8,9 +8,6 @@ test('conta nova (estado salvo sem pessoas) abre com o estado inicial', async ({
     localStorage.setItem('rateio.local', JSON.stringify({ v: 7, people: [] })),
   );
   await page.goto('/');
-  await page.getByLabel('PIN', { exact: true }).fill('1234');
-  await page.getByLabel('Repita o PIN').fill('1234');
-  await page.getByRole('button', { name: 'Criar PIN' }).click();
   await expect(page.getByRole('navigation', { name: 'Seções' })).toBeVisible();
   await expect(page.getByText('formato inesperado')).toHaveCount(0);
   expect(erros).toEqual([]);
