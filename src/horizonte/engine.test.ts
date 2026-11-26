@@ -599,7 +599,9 @@ describe('mês da fatura pelo fechamento do OFX (formato Nubank, fixtures invent
     const S = 'ser';
     const s = snap('2026-12', [line({ instCur: 4, instTot: 6, seriesKey: S })]);
     const r = project(data({ snapshots: [s], cards: [card], today: '2026-11-26' }));
-    const meses = r.windows.filter((w) => w.items.some((i) => i.origin === 'parcela')).map((w) => w.window.comp);
+    const meses = r.windows
+      .filter((w) => w.items.some((i) => i.origin === 'parcela'))
+      .map((w) => w.window.comp);
     expect(meses).toEqual(['2027-01', '2027-02']);
   });
 });
