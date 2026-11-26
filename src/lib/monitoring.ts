@@ -58,7 +58,8 @@ export function initMonitoring(): void {
 export function reportRpcError(fn: string, error: { code?: string; message?: string }): void {
   if (!on) return;
   // Queda de rede passageira (aba em segundo plano, offline, deploy): não é bug, não reporta.
-  if (/failed to fetch|networkerror|load failed|network request failed/i.test(error.message ?? '')) return;
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(error.message ?? ''))
+    return;
   Sentry.withScope((scope) => {
     scope.setTag('rpc', fn);
     scope.setTag('rpc_code', error.code ?? 'sem-codigo');
