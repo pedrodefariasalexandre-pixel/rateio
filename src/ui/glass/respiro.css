@@ -1,0 +1,68 @@
+/* Respiro — espaçamento global (só tokens --space-*, --card-*, --field-gap). Importado por último. */
+main.wrap {
+  padding-top: var(--page-top);
+  padding-bottom: var(--page-bottom);
+}
+@media (max-width: 640px) {
+  :root {
+    --page-top: 20px;
+    --card-gap: 16px;
+    --card-pad: 18px;
+  }
+  main.wrap {
+    padding-inline: var(--space-4);
+  }
+}
+/* entre cartões */
+main.wrap .cfg,
+main.wrap .hz-grid {
+  gap: var(--card-gap);
+}
+main.wrap .pm-sec,
+main.wrap .ledger,
+main.wrap .pcard,
+main.wrap .hist,
+main.wrap .closebox,
+main.wrap .notice,
+main.wrap .hz-abas {
+  margin-bottom: var(--card-gap);
+}
+main.wrap .notice {
+  margin-top: 0;
+}
+/* dentro dos cartões */
+main.wrap .dsec.cfg-card,
+main.wrap .pm-sec,
+main.wrap .hz-card {
+  padding: var(--card-pad);
+}
+main.wrap .notice {
+  padding: var(--space-3) var(--space-4);
+}
+main.wrap .pm {
+  padding: 0;
+}
+main.wrap .pm-sec h4,
+main.wrap .dsec.cfg-card h4 {
+  margin-bottom: var(--space-4);
+}
+/* campos e botões */
+main.wrap .cfg-pix,
+main.wrap .cfg-actions,
+main.wrap .pm-row,
+main.wrap .pm-grid,
+main.wrap .hz-acts,
+main.wrap .hz-kpis {
+  gap: var(--field-gap);
+}
+main.wrap .pm-row {
+  margin-bottom: var(--field-gap);
+}
+main.wrap .pm-help,
+main.wrap .hz-sub.small {
+  margin-top: var(--space-4);
+}
+main.wrap .hz-top {
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
