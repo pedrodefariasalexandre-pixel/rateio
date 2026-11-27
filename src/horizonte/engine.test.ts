@@ -121,9 +121,14 @@ const data = (p: Partial<HorizonData> = {}): HorizonData => ({
   today: '2026-12-01',
   ...p,
 });
+// só as futuras: a fatura importada (2026-12) aparece no próprio mês e é testada à parte
 const parcelas = (r: ReturnType<typeof project>) =>
   r.windows.flatMap((w) =>
-    w.items.filter((i) => i.origin === 'parcela').map((i) => [w.window.comp, i.inst!.cur, i.cents]),
+    w.window.comp <= '2026-12'
+      ? []
+      : w.items
+          .filter((i) => i.origin === 'parcela')
+          .map((i) => [w.window.comp, i.inst!.cur, i.cents]),
   );
 
 const S = 'p2|kA|LOJA|10';
@@ -595,13 +600,74 @@ describe('mês da fatura pelo fechamento do OFX (formato Nubank, fixtures invent
     expect(invoiceCompFromClosing(p.dtEnd, card)).toBe(esperado);
     expect(invoiceCompFromClosing(p.dtEnd, undefined)).toBe(esperado);
   });
-  it('parcelas futuras caem a partir do mês seguinte à fatura', () => {
+  it('a fatura importada aparece no próprio mês; as seguintes, a partir do mês seguinte', () => {
     const S = 'ser';
     const s = snap('2026-12', [line({ instCur: 4, instTot: 6, seriesKey: S })]);
     const r = project(data({ snapshots: [s], cards: [card], today: '2026-11-26' }));
     const meses = r.windows
       .filter((w) => w.items.some((i) => i.origin === 'parcela'))
       .map((w) => w.window.comp);
-    expect(meses).toEqual(['2027-01', '2027-02']);
+    expect(meses).toEqual(['2026-12', '2027-01', '2027-02']);
+  });
+  it('fatura de dezembro: à vista líquido de estorno, parcelas antecipadas e duplicadas não voltam', () => {
+    const V = seriesKeyOf('kA', 'Villa - Parcela 7/12', 12);
+    const J = seriesKeyOf('kA', 'Loja J - Parcela 3/10', 10);
+    const P = seriesKeyOf('kA', 'Loja P - Parcela 1/3', 3);
+    const lines = [
+      line({ memo: 'Villa - Parcela 7/12', cents: 7499, instCur: 7, instTot: 12, seriesKey: V }),
+      ...[8, 9, 10, 11, 12].map((n) =>
+        line({
+          memo: `Villa - Parcela ${n}/12`,
+          cents: 7499,
+          instCur: n,
+          instTot: 12,
+          seriesKey: V,
+        }),
+      ),
+      line({ memo: 'Loja J - Parcela 3/10', cents: 6617, instCur: 3, instTot: 10, seriesKey: J }),
+      ...[4, 5, 6].map((n) =>
+        line({
+          memo: `Loja J - Parcela ${n}/10`,
+          cents: 6617,
+          instCur: n,
+          instTot: 10,
+          seriesKey: J,
+        }),
+      ),
+      line({ memo: 'Loja P - Parcela 1/3', cents: 5000, instCur: 1, instTot: 3, seriesKey: P }),
+      line({ memo: 'Mercado', norm: 'MERCADO', cents: 20000 }),
+      line({ memo: 'Estorno x', norm: 'ESTORNO X', cents: -5000, kind: 'estorno' }),
+      line({
+        memo: 'Desconto Antecipacao',
+        norm: 'DESCONTO ANTECIPACAO',
+        cents: -1500,
+        kind: 'estorno',
+      }),
+      line({
+        memo: 'Pagamento recebido',
+        norm: 'PAGAMENTO RECEBIDO',
+        cents: -90000,
+        kind: 'pagamento',
+      }),
+    ];
+    const card = { acct: 'kA', name: '', closingDay: 2, dueDay: 9 };
+    const r = project(
+      data({ snapshots: [snap('2026-12', lines)], cards: [card], today: '2026-11-27' }),
+    );
+    const dez = r.windows.find((w) => w.window.comp === '2026-12')!;
+    const sai = dez.items.filter((i) => i.direction === 'saida' && i.origin !== 'semanas');
+    expect(sai.find((i) => i.label === 'Compras à vista da fatura')?.cents).toBe(15000);
+    expect(
+      sai
+        .filter((i) => i.origin === 'parcela')
+        .map((i) => i.label)
+        .sort(),
+    ).toEqual(['Loja J - Parcela 3/10', 'Loja P - Parcela 1/3', 'Villa - Parcela 7/12']);
+    const futuras = r.windows
+      .filter((w) => w.window.comp > '2026-12')
+      .flatMap((w) => w.items.filter((i) => i.origin === 'parcela').map((i) => i.key));
+    expect(futuras).toEqual(expect.arrayContaining([`parc|${P}|2`, `parc|${P}|3`]));
+    expect(futuras.some((k) => k.includes(V) || k.includes(J))).toBe(false);
+    expect(new Set(futuras).size).toBe(futuras.length);
   });
 });
