@@ -137,7 +137,12 @@ describe('Cadastro do Horizonte', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar conta fixa' }));
     expect(await screen.findByText('"Aluguel" salva.')).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Apagar Aluguel' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Aluguel' }));
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '1300' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    expect(await screen.findByText('"Aluguel" atualizada.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Apagar Aluguel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar apagar Aluguel' }));
     await waitFor(() => expect(screen.queryByText('Apagar Aluguel')).toBeNull());
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Teto semanal' }), {

@@ -15,7 +15,14 @@ import type {
 } from './modelo';
 
 type Vista =
-  'geral' | 'janela' | 'caixinhas' | 'semanas' | 'decimo' | 'ajustes' | 'importar' | 'antecipar';
+  | 'geral'
+  | 'janela'
+  | 'caixinhas'
+  | 'semanas'
+  | 'decimo'
+  | 'ajustes'
+  | 'importar'
+  | 'antecipar';
 const ABAS: [Vista, string][] = [
   ['geral', 'Visão geral'],
   ['janela', 'Janela'],
@@ -673,7 +680,7 @@ function Campo(p: {
     <label className="hz-fld">
       <small>{p.rot}</small>
       <input
-        inputMode={p.dec ? 'decimal' : undefined}
+        inputMode={p.dec ? 'decimal' : 'numeric'}
         value={p.v}
         onChange={(e) => p.set(e.target.value)}
         placeholder={p.ph ?? (p.dec ? '0,00' : undefined)}
@@ -846,20 +853,30 @@ function Salario({ cfg, fonte, depois }: CadP) {
   const [util, setUtil] = useState(String(s?.diaUtil ?? 5));
   const [avos, setAvos] = useState(String(s?.avos ?? 12));
   const [msg, setMsg] = useState<Msg>(null);
-  const enviar = () =>
-    fonte
+  const enviar = () => {
+    const faixa = (v: string, a: number, b: number) => {
+      const n = Number.parseInt(v, 10);
+      return Number.isFinite(n) && n >= a && n <= b;
+    };
+    if (!faixa(diaA, 1, 28)) return setMsg({ ok: false, t: 'Dia do adiantamento: use de 1 a 28.' });
+    if (!faixa(util, 1, 23)) return setMsg({ ok: false, t: 'Dia útil do salário: use de 1 a 23.' });
+    if (!faixa(avos, 0, 12)) return setMsg({ ok: false, t: 'Avos do 13º: use de 0 a 12.' });
+    if (cents(bruto) > 0 && cents(bruto) < cents(liq))
+      return setMsg({ ok: false, t: 'O bruto não pode ser menor que o líquido.' });
+    return fonte
       .salvarSalario({
         bruto: cents(bruto),
         liquido: cents(liq),
         adiantamento: cents(adi),
-        diaAdiantamento: Math.min(28, Math.max(1, inteiro(diaA, 15))),
-        diaUtil: Math.min(23, Math.max(1, inteiro(util, 5))),
-        avos: Math.min(12, Math.max(0, inteiro(avos, 12))),
+        diaAdiantamento: inteiro(diaA, 15),
+        diaUtil: inteiro(util, 5),
+        avos: inteiro(avos, 12),
       })
       .then(
         () => (setMsg({ ok: true, t: 'Salário salvo.' }), depois()),
         (e: unknown) => setMsg({ ok: false, t: texto(e) }),
       );
+  };
   return (
     <form
       className="hz-g hz-card"
@@ -886,19 +903,46 @@ function Fixas({ cfg, fonte, depois }: CadP) {
   const [valor, setValor] = useState('');
   const [dia, setDia] = useState('10');
   const [entrada, setEntrada] = useState(false);
+  const [editando, setEditando] = useState<string | null>(null);
+  const [apagando, setApagando] = useState<string | null>(null);
   const [msg, setMsg] = useState<Msg>(null);
-  const enviar = () =>
-    fonte.salvarFixa({ nome, cents: cents(valor), entrada, dia: inteiro(dia, 10) }).then(
-      () => (
-        setMsg({ ok: true, t: `"${nome.trim()}" salva.` }),
-        setNome(''),
-        setValor(''),
-        depois()
-      ),
-      (e: unknown) => setMsg({ ok: false, t: texto(e) }),
-    );
-  const apagar = (id: string) =>
-    fonte.apagarFixa(id).then(depois, (e: unknown) => setMsg({ ok: false, t: texto(e) }));
+  const limpar = () => (
+    setEditando(null),
+    setNome(''),
+    setValor(''),
+    setDia('10'),
+    setEntrada(false)
+  );
+  const enviar = () => {
+    const d = Number.parseInt(dia, 10);
+    if (!Number.isFinite(d) || d < 1 || d > 31)
+      return setMsg({ ok: false, t: 'Dia do mês: use de 1 a 31.' });
+    const era = editando;
+    return fonte
+      .salvarFixa({ id: era ?? undefined, nome, cents: cents(valor), entrada, dia: d })
+      .then(
+        () => (
+          setMsg({ ok: true, t: `"${nome.trim()}" ${era ? 'atualizada' : 'salva'}.` }),
+          limpar(),
+          depois()
+        ),
+        (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+      );
+  };
+  const apagar = (id: string) => {
+    setApagando(null);
+    if (editando === id) limpar();
+    return fonte.apagarFixa(id).then(depois, (e: unknown) => setMsg({ ok: false, t: texto(e) }));
+  };
+  const editar = (f: HorizonteConfig['fixas'][number]) => {
+    setEditando(f.id);
+    setNome(f.nome);
+    setValor(reais(f.cents));
+    setDia(String(f.dia));
+    setEntrada(f.entrada);
+    setApagando(null);
+    setMsg(null);
+  };
   return (
     <form
       className="hz-g hz-card"
@@ -919,14 +963,40 @@ function Fixas({ cfg, fonte, depois }: CadP) {
                 </small>
               </div>
               <div className="val">{sinal(f.entrada ? f.cents : -f.cents)}</div>
-              <button
-                type="button"
-                className="hz-link"
-                aria-label={`Apagar ${f.nome}`}
-                onClick={() => apagar(f.id)}
-              >
-                Apagar
-              </button>
+              {apagando === f.id ? (
+                <>
+                  <button
+                    type="button"
+                    className="hz-link"
+                    aria-label={`Confirmar apagar ${f.nome}`}
+                    onClick={() => apagar(f.id)}
+                  >
+                    Confirmar
+                  </button>
+                  <button type="button" className="hz-link" onClick={() => setApagando(null)}>
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="hz-link"
+                    aria-label={`Editar ${f.nome}`}
+                    onClick={() => editar(f)}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="hz-link"
+                    aria-label={`Apagar ${f.nome}`}
+                    onClick={() => setApagando(f.id)}
+                  >
+                    Apagar
+                  </button>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -940,8 +1010,13 @@ function Fixas({ cfg, fonte, depois }: CadP) {
       </label>
       <Aviso msg={msg} />
       <button className="hz-btn pri full" type="submit">
-        Adicionar conta fixa
+        {editando ? 'Salvar alterações' : 'Adicionar conta fixa'}
       </button>
+      {editando && (
+        <button type="button" className="hz-btn full" onClick={limpar}>
+          Cancelar edição
+        </button>
+      )}
     </form>
   );
 }
