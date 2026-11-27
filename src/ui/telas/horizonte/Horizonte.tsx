@@ -1276,7 +1276,8 @@ function Importar({
           </div>
           <h3>Horizonte atualizado</h3>
           <p>
-            {salvos === 1 ? '1 lançamento salvo' : `${salvos} lançamentos salvos`}. O arquivo bruto e o número do cartão não ficam guardados.
+            {salvos === 1 ? '1 lançamento salvo' : `${salvos} lançamentos salvos`}. O arquivo bruto
+            e o número do cartão não ficam guardados.
           </p>
           <button className="hz-btn pri" onClick={onFim}>
             Ver meses
