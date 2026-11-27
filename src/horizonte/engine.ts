@@ -219,20 +219,40 @@ interface ProjParcel {
   due: ISODate;
   cents: Cents; // cheio
 }
+/**
+ * Parcelas de uma fatura: uma linha por série (a de menor n/t). Linhas da mesma série com n maior
+ * no mesmo arquivo são parcelas já antecipadas e pagas (ex.: 7/12 normal + 8..12/12 antecipadas):
+ * não geram cobrança nem projeção, e a série termina na parcela anterior à primeira antecipada.
+ */
+function regularParcels(s: InvoiceSnapshot): { line: InvoiceLine; lastInst: number }[] {
+  const by = new Map<string, InvoiceLine[]>();
+  for (const l of s.lines) {
+    if (l.kind !== 'compra' || !l.seriesKey || !l.instCur || !l.instTot || l.cents <= 0) continue;
+    by.set(l.seriesKey, [...(by.get(l.seriesKey) ?? []), l]);
+  }
+  const out: { line: InvoiceLine; lastInst: number }[] = [];
+  for (const ls of by.values()) {
+    const sorted = [...ls].sort((a, b) => a.instCur! - b.instCur!);
+    const first = sorted[0]!;
+    const ant = sorted.find((l) => l.instCur! > first.instCur!);
+    out.push({ line: first, lastInst: ant ? ant.instCur! - 1 : first.instTot! });
+  }
+  return out;
+}
+
 function projectParcels(d: HorizonData): ProjParcel[] {
   const out: ProjParcel[] = [];
   for (const s of latestByCard(d.snapshots)) {
     const card = d.cards.find((c) => c.acct === s.acct);
     const dueDay = card?.dueDay ?? (s.dueDate ? +s.dueDate.slice(8, 10) : 10);
-    for (const l of s.lines) {
-      if (l.kind !== 'compra' || !l.seriesKey || !l.instCur || !l.instTot || l.cents <= 0) continue;
+    for (const { line: l, lastInst } of regularParcels(s)) {
       const dec = decisionOf(d.decisions, l.seriesKey);
       if (dec?.decision === 'fora_manual') continue;
       const cut =
         dec?.decision === 'pago_antecipado'
           ? l.instTot - (dec.anticipatedLast ?? l.instTot)
           : l.instTot;
-      for (let n = l.instCur + 1; n <= cut; n++) {
+      for (let n = l.instCur + 1; n <= Math.min(cut, lastInst); n++) {
         const invoiceComp = addMonths(s.comp, n - l.instCur);
         out.push({
           seriesKey: l.seriesKey,
@@ -412,6 +432,52 @@ export function project(d: HorizonData): HorizonResult {
       });
     }
 
+    // a própria fatura importada (ex.: fatura de dezembro, vence em dezembro): parcelas dela + à vista
+    for (const s of latestByCard(d.snapshots)) {
+      const card = d.cards.find((c) => c.acct === s.acct);
+      const dueDay = card?.dueDay ?? (s.dueDate ? +s.dueDate.slice(8, 10) : 10);
+      const due = dateIn(s.comp, dueDay);
+      if (windowOf(due, advDay) !== comp) continue;
+      const fixedNorms = new Set(d.fixed.map((f) => normalize(f.name)));
+      const reg = regularParcels(s);
+      const regLines = new Set(reg.map((r) => r.line));
+      for (const { line: l, lastInst } of reg) {
+        const pref = prefOf(d, l.seriesKey!);
+        push({
+          key: `parc|${l.seriesKey}|${l.instCur}`,
+          label: pref?.alias ?? l.memo,
+          origin: 'parcela',
+          status: 'comprometido',
+          direction: 'saida',
+          cents: share(l.cents, d.myShare(l)),
+          date: due,
+          sourcePocketId: null,
+          inst: { cur: l.instCur!, tot: l.instTot! },
+          endsHere: l.instCur === lastInst,
+          hidden: !!pref?.hidden,
+        });
+      }
+      // à vista: compras sem parcela menos estornos (pagamentos e descontos de antecipação ficam fora)
+      let avista = 0;
+      for (const l of s.lines) {
+        if (regLines.has(l) || l.instTot || fixedNorms.has(l.norm)) continue;
+        if (l.kind === 'compra' || l.kind === 'encargo') avista += share(l.cents, d.myShare(l));
+        else if (l.kind === 'estorno' && !/ANTECIPA/i.test(l.norm))
+          avista += share(l.cents, d.myShare(l));
+      }
+      if (avista > 0)
+        push({
+          key: `avista|${s.acct}|${s.comp}`,
+          label: 'Compras à vista da fatura',
+          origin: 'avulso',
+          status: 'comprometido',
+          direction: 'saida',
+          cents: avista,
+          date: due,
+          sourcePocketId: null,
+        });
+    }
+
     // fixas, assinaturas, terceiros (RF08, RF37, RF39, RF40)
     for (const f of d.fixed) {
       for (const date of fixedOccurrences(f, w)) {
@@ -528,7 +594,7 @@ export function project(d: HorizonData): HorizonResult {
         date: w.start,
         sourcePocketId: null,
       });
-    else if (av.avg > 0)
+    else if (av.avg > 0 && !items.some((i) => i.key.startsWith('avista|')))
       push({
         key: `avu|${comp}`,
         label: 'Gastos avulsos (média 3 meses)',
