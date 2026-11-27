@@ -15,14 +15,7 @@ import type {
 } from './modelo';
 
 type Vista =
-  | 'geral'
-  | 'janela'
-  | 'caixinhas'
-  | 'semanas'
-  | 'decimo'
-  | 'ajustes'
-  | 'importar'
-  | 'antecipar';
+  'geral' | 'janela' | 'caixinhas' | 'semanas' | 'decimo' | 'ajustes' | 'importar' | 'antecipar';
 const ABAS: [Vista, string][] = [
   ['geral', 'Visão geral'],
   ['janela', 'Janela'],
