@@ -153,7 +153,11 @@ export function Horizonte({ fonte }: { fonte: HorizonteFonte }) {
           onVoltar={() => setVista('geral')}
         />
       ) : vista === 'antecipar' && antecipar ? (
-        <Antecipar fonte={fonte} item={antecipar} onVoltar={() => setVista('janela')} />
+        <Antecipar
+          fonte={fonte}
+          item={antecipar}
+          onVoltar={(mudou) => (mudou && recarregar(), setVista('janela'))}
+        />
       ) : vazio && vista === 'ajustes' ? (
         <Cadastro fonte={fonte} recarregar={recarregar} onVoltar={() => setVista('geral')} />
       ) : vazio ? (
@@ -200,7 +204,14 @@ export function Horizonte({ fonte }: { fonte: HorizonteFonte }) {
           )}
           {vista === 'caixinhas' && <Caixinhas d={d} fonte={fonte} recarregar={recarregar} />}
           {vista === 'semanas' && <Semanas d={d} />}
-          {vista === 'decimo' && <Decimo d={d} fonte={fonte} recarregar={recarregar} />}
+          {vista === 'decimo' && (
+            <Decimo
+              d={d}
+              fonte={fonte}
+              recarregar={recarregar}
+              editar={() => setVista('ajustes')}
+            />
+          )}
           {vista === 'ajustes' && <Cadastro fonte={fonte} recarregar={recarregar} />}
         </>
       )}
@@ -378,7 +389,7 @@ function FuroCard({
       <button
         className="hz-btn pri"
         onClick={() =>
-          fonte.cobrirFuro().then(recarregar, (e: unknown) => setMsg({ ok: false, t: texto(e) }))
+          fonte.cobrirFuro(emg).then(recarregar, (e: unknown) => setMsg({ ok: false, t: texto(e) }))
         }
       >
         Cobrir com Semanas + Reserva{emg ? ' + Emergência' : ''}
@@ -514,7 +525,10 @@ function Caixinhas({
   recarregar: () => void;
 }) {
   const cx = d.caixinhas;
-  const [de, setDe] = useState(cx[cx.length - 1]?.id ?? '');
+  const [deSel, setDe] = useState('');
+  const de = cx.some((c) => c.id === deSel)
+    ? deSel
+    : (cx.find((c) => c.regra !== 'piso' && c.saldo > 0)?.id ?? cx[0]?.id ?? '');
   const [para, setPara] = useState('');
   const [nova, setNova] = useState('');
   const [valor, setValor] = useState('');
@@ -530,6 +544,7 @@ function Caixinhas({
         setMsg({ ok: true, t: `${fmtC(cents)} transferidos. Não conta como gasto.` });
         setValor('');
         setMotivo('');
+        setNova('');
         recarregar();
       },
       (e: unknown) => setMsg({ ok: false, t: e instanceof Error ? e.message : String(e) }),
@@ -1080,10 +1095,12 @@ function Decimo({
   d,
   fonte,
   recarregar,
+  editar,
 }: {
   d: HorizonteDados;
   fonte: HorizonteFonte;
   recarregar: () => void;
+  editar: () => void;
 }) {
   const t = d.decimo;
   const [msg13, setMsg13] = useState<Msg>(null);
@@ -1129,6 +1146,12 @@ function Decimo({
           ? 'O 13º entra no Horizonte como pontual previsto nas datas acima.'
           : 'O 13º não entra nas contas até você ligar a chave.'}
       </p>
+      <p className="hz-sub small">
+        Bruto, avos e adiantamento vêm do seu cadastro de salário.{' '}
+        <button className="hz-link" onClick={editar}>
+          Editar no Cadastro
+        </button>
+      </p>
     </div>
   );
 }
@@ -1140,14 +1163,28 @@ function Antecipar({
 }: {
   fonte: HorizonteFonte;
   item: Item;
-  onVoltar: () => void;
+  onVoltar: (recarregar?: boolean) => void;
 }) {
   const [n, setN] = useState(3);
   const [pago, setPago] = useState('');
   const [s, setS] = useState<Simulacao | null>(null);
+  const [msg, setMsg] = useState<Msg>(null);
+  const preco = parseCents(pago);
   useEffect(() => {
-    fonte.simular(item.id, n, parseCents(pago) ?? undefined).then(setS);
-  }, [fonte, item.id, n, pago]);
+    let vivo = true;
+    fonte.simular(item.id, n, preco ?? undefined).then(
+      (x) => vivo && setS(x),
+      (e: unknown) => vivo && setMsg({ ok: false, t: texto(e) }),
+    );
+    return () => {
+      vivo = false;
+    };
+  }, [fonte, item.id, n, preco]);
+  const confirmar = () =>
+    fonte.antecipar(item.id, n).then(
+      () => onVoltar(true),
+      (e: unknown) => setMsg({ ok: false, t: texto(e) }),
+    );
   return (
     <div className="hz-g hz-card hz-narrow">
       <div className="hz-k">
@@ -1188,17 +1225,30 @@ function Antecipar({
             <Row k="Rendimento da caixinha no período">
               <b>{fmtC(s.rendimento)}</b>
             </Row>
-            <div className={'hz-alert' + (s.vale ? ' good' : '')} role="status">
-              {s.vale ? '✓ Vale a pena' : '✗ Não compensa'}: desconto{' '}
-              {fmtC(s.valor - s.comDesconto)} {s.vale ? '>' : '≤'} rendimento {fmtC(s.rendimento)}.
-            </div>
+            {preco == null ? (
+              <div className="hz-alert" role="status">
+                Informe o valor à vista oferecido pelo banco para ver se compensa.
+              </div>
+            ) : (
+              <div className={'hz-alert' + (s.vale ? ' good' : '')} role="status">
+                {s.vale ? '✓ Vale a pena' : '✗ Não compensa'}: desconto{' '}
+                {fmtC(s.valor - s.comDesconto)} {s.vale ? '>' : '≤'} rendimento {fmtC(s.rendimento)}
+                .
+              </div>
+            )}
           </>
         )
       )}
       <p className="hz-sub small">
         🔒 Itens divididos não podem ser antecipados. Reimportar não traz as parcelas de volta.
       </p>
-      <button className="hz-btn" onClick={onVoltar}>
+      <Aviso msg={msg} />
+      {!s?.bloqueado && (
+        <button className="hz-btn pri" onClick={confirmar} disabled={!s}>
+          Confirmar: antecipei {n} {n === 1 ? 'parcela' : 'parcelas'}
+        </button>
+      )}
+      <button className="hz-btn" onClick={() => onVoltar()}>
         Voltar
       </button>
     </div>

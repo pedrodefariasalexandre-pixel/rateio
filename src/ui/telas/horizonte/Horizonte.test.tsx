@@ -36,7 +36,10 @@ describe('Horizonte', () => {
     render(<Horizonte fonte={fonteFicticia()} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Janela' }));
     fireEvent.click(screen.getAllByRole('button', { name: 'simular antecipação' })[1]!);
+    expect(await screen.findByText(/Informe o valor à vista/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Valor à vista oferecido'), { target: { value: '1' } });
     expect(await screen.findByText(/Vale a pena/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirmar: antecipei 3 parcelas/ })).toBeEnabled();
   });
 
   it('transfere entre caixinhas criando uma nova', async () => {

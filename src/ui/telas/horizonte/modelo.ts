@@ -146,7 +146,10 @@ export interface HorizonteFonte extends HorizonteCadastro {
   /** `pagoCents`: valor à vista oferecido pelo banco; sem ele, preço cheio. */
   simular(itemId: string, ultimas: number, pagoCents?: number): Promise<Simulacao>;
   set13(considerar: boolean): Promise<void>;
-  cobrirFuro(): Promise<void>;
+  /** `emergencia`: inclui a caixinha de emergência (só com confirmação do usuário). */
+  cobrirFuro(emergencia?: boolean): Promise<void>;
+  /** Confirma a antecipação: as `ultimas` parcelas deixam de ser projetadas. */
+  antecipar(itemId: string, ultimas: number): Promise<void>;
 }
 
 /** Cadastro do Horizonte (RF23/24/28/33/36/48): o que o usuário informa à mão. */
