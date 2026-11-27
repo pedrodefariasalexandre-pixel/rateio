@@ -224,18 +224,33 @@ interface ProjParcel {
  * no mesmo arquivo são parcelas já antecipadas e pagas (ex.: 7/12 normal + 8..12/12 antecipadas):
  * não geram cobrança nem projeção, e a série termina na parcela anterior à primeira antecipada.
  */
-function regularParcels(s: InvoiceSnapshot): { line: InvoiceLine; lastInst: number }[] {
+interface RegParcel {
+  line: InvoiceLine;
+  key: string;
+  cur: number;
+  tot: number;
+  lastInst: number;
+}
+function regularParcels(s: InvoiceSnapshot): RegParcel[] {
   const by = new Map<string, InvoiceLine[]>();
   for (const l of s.lines) {
     if (l.kind !== 'compra' || !l.seriesKey || !l.instCur || !l.instTot || l.cents <= 0) continue;
     by.set(l.seriesKey, [...(by.get(l.seriesKey) ?? []), l]);
   }
-  const out: { line: InvoiceLine; lastInst: number }[] = [];
+  const out: RegParcel[] = [];
   for (const ls of by.values()) {
-    const sorted = [...ls].sort((a, b) => a.instCur! - b.instCur!);
+    const sorted = [...ls].sort((a, b) => (a.instCur ?? 0) - (b.instCur ?? 0));
     const first = sorted[0]!;
-    const ant = sorted.find((l) => l.instCur! > first.instCur!);
-    out.push({ line: first, lastInst: ant ? ant.instCur! - 1 : first.instTot! });
+    const cur = first.instCur ?? 0;
+    const tot = first.instTot ?? 0;
+    const ant = sorted.find((l) => (l.instCur ?? 0) > cur);
+    out.push({
+      line: first,
+      key: first.seriesKey ?? '',
+      cur,
+      tot,
+      lastInst: ant ? (ant.instCur ?? 0) - 1 : tot,
+    });
   }
   return out;
 }
@@ -245,21 +260,18 @@ function projectParcels(d: HorizonData): ProjParcel[] {
   for (const s of latestByCard(d.snapshots)) {
     const card = d.cards.find((c) => c.acct === s.acct);
     const dueDay = card?.dueDay ?? (s.dueDate ? +s.dueDate.slice(8, 10) : 10);
-    for (const { line: l, lastInst } of regularParcels(s)) {
-      const dec = decisionOf(d.decisions, l.seriesKey);
+    for (const { line: l, key, cur, tot, lastInst } of regularParcels(s)) {
+      const dec = decisionOf(d.decisions, key);
       if (dec?.decision === 'fora_manual') continue;
-      const cut =
-        dec?.decision === 'pago_antecipado'
-          ? l.instTot - (dec.anticipatedLast ?? l.instTot)
-          : l.instTot;
-      for (let n = l.instCur + 1; n <= Math.min(cut, lastInst); n++) {
-        const invoiceComp = addMonths(s.comp, n - l.instCur);
+      const cut = dec?.decision === 'pago_antecipado' ? tot - (dec.anticipatedLast ?? tot) : tot;
+      for (let n = cur + 1; n <= Math.min(cut, lastInst); n++) {
+        const invoiceComp = addMonths(s.comp, n - cur);
         out.push({
-          seriesKey: l.seriesKey,
+          seriesKey: key,
           line: l,
           acct: s.acct,
           inst: n,
-          tot: l.instTot,
+          tot,
           invoiceComp,
           due: dateIn(invoiceComp, dueDay),
           cents: l.cents,
@@ -441,10 +453,10 @@ export function project(d: HorizonData): HorizonResult {
       const fixedNorms = new Set(d.fixed.map((f) => normalize(f.name)));
       const reg = regularParcels(s);
       const regLines = new Set(reg.map((r) => r.line));
-      for (const { line: l, lastInst } of reg) {
-        const pref = prefOf(d, l.seriesKey!);
+      for (const { line: l, key, cur, tot, lastInst } of reg) {
+        const pref = prefOf(d, key);
         push({
-          key: `parc|${l.seriesKey}|${l.instCur}`,
+          key: `parc|${key}|${cur}`,
           label: pref?.alias ?? l.memo,
           origin: 'parcela',
           status: 'comprometido',
@@ -452,8 +464,8 @@ export function project(d: HorizonData): HorizonResult {
           cents: share(l.cents, d.myShare(l)),
           date: due,
           sourcePocketId: null,
-          inst: { cur: l.instCur!, tot: l.instTot! },
-          endsHere: l.instCur === lastInst,
+          inst: { cur, tot },
+          endsHere: cur === lastInst,
           hidden: !!pref?.hidden,
         });
       }
