@@ -1045,6 +1045,9 @@ function Semanas({ d }: { d: HorizonteDados }) {
         <div className="hz-k">Teto semanal</div>
         <b>{fmtC(d.tetoSemanal)}</b>
       </div>
+      {d.semanas.length === 0 && (
+        <p className="hz-sub">Cadastre o salário e a janela para ver as semanas.</p>
+      )}
       <div className="hz-wk">
         {d.semanas.map((s) => (
           <div key={s.rotulo} className="hz-p">
@@ -1056,7 +1059,7 @@ function Semanas({ d }: { d: HorizonteDados }) {
             </div>
             {s.estouro ? (
               <b className="neg">
-                {fmtC(s.gasto)} · +{Math.round(s.estouro / 100)}
+                {fmtC(s.gasto)} · estourou {fmtC(s.estouro)}
               </b>
             ) : (
               <b>{fmtC(s.disponivel)} disp.</b>
@@ -1065,8 +1068,9 @@ function Semanas({ d }: { d: HorizonteDados }) {
         ))}
       </div>
       <p className="hz-sub small">
-        Semana de segunda a domingo. Semanas = dias × teto ÷ 7. Estouro sai da semana seguinte.
-        Sobra da janela vai para a Reserva.
+        Cada semana vai de segunda a domingo e vale o teto proporcional aos dias dela. O que passar
+        do teto é descontado da semana seguinte; o que sobrar na janela vai para a Reserva. Os
+        gastos reais ainda não entram nesta conta, por isso todas aparecem com folga.
       </p>
     </div>
   );
@@ -1213,13 +1217,35 @@ function Importar({
   const [passo, setPasso] = useState<1 | 2 | 3>(1);
   const [res, setRes] = useState<ResultadoImport[]>([]);
   const [salvos, setSalvos] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [falha, setFalha] = useState('');
   const ler = async (files: FileList | null) => {
     if (!files?.length) return;
-    const arquivos = await Promise.all(
-      [...files].map(async (f) => ({ nome: f.name, texto: await f.text() })),
-    );
-    setRes(await fonte.conferirOfx(arquivos));
-    setPasso(2);
+    setFalha('');
+    setBusy(true);
+    try {
+      const arquivos = await Promise.all(
+        [...files].map(async (f) => ({ nome: f.name, texto: await f.text() })),
+      );
+      setRes(await fonte.conferirOfx(arquivos));
+      setPasso(2);
+    } catch (e) {
+      setFalha(`Não foi possível ler os arquivos. ${texto(e)}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const salvar = async () => {
+    setFalha('');
+    setBusy(true);
+    try {
+      setSalvos(await fonte.salvarOfx(res));
+      setPasso(3);
+    } catch (e) {
+      setFalha(`Não foi possível salvar. Nada foi perdido, tente de novo. ${texto(e)}`);
+    } finally {
+      setBusy(false);
+    }
   };
   const erros = res.filter((r) => r.status === 'erro');
   const steps = (
@@ -1249,15 +1275,24 @@ function Importar({
               ⇪
             </span>
             <b>Escolha os arquivos .ofx</b>
-            <span className="hz-btn">Escolher arquivos</span>
+            <span className="hz-btn">{busy ? 'Lendo…' : 'Escolher arquivos'}</span>
             <input
               type="file"
-              accept=".ofx"
+              accept=".ofx,.OFX"
               multiple
+              disabled={busy}
               data-testid="hz-ofx"
-              onChange={(e) => void ler(e.target.files)}
+              onChange={(e) => {
+                void ler(e.target.files);
+                e.target.value = '';
+              }}
             />
           </label>
+          {falha && (
+            <p className="neg" role="alert">
+              {falha}
+            </p>
+          )}
           <button className="hz-btn" onClick={onVoltar}>
             Cancelar
           </button>
@@ -1278,16 +1313,26 @@ function Importar({
               )}
             </div>
           ))}
+          {!res.some((r) => r.status === 'ok') && (
+            <p className="hz-sub" role="status">
+              Nada novo para salvar: essas faturas já estão no Horizonte.
+            </p>
+          )}
+          {falha && (
+            <p className="neg" role="alert">
+              {falha}
+            </p>
+          )}
           <div className="hz-acts">
             <button className="hz-btn" onClick={() => setPasso(1)}>
               Voltar
             </button>
             <button
               className="hz-btn pri grow"
-              disabled={!res.some((r) => r.status === 'ok')}
-              onClick={() => fonte.salvarOfx(res).then((n) => (setSalvos(n), setPasso(3)))}
+              disabled={busy || !res.some((r) => r.status === 'ok')}
+              onClick={() => void salvar()}
             >
-              Salvar no Horizonte
+              {busy ? 'Salvando…' : 'Salvar no Horizonte'}
             </button>
           </div>
         </>
@@ -1299,7 +1344,8 @@ function Importar({
           </div>
           <h3>Horizonte atualizado</h3>
           <p>
-            {salvos} lançamentos salvos. O arquivo bruto e o número do cartão não ficam guardados.
+            {salvos === 1 ? '1 lançamento salvo' : `${salvos} lançamentos salvos`}. O arquivo bruto
+            e o número do cartão não ficam guardados.
           </p>
           <button className="hz-btn pri" onClick={onFim}>
             Ver meses
