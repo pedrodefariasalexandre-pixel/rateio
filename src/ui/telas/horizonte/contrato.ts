@@ -281,13 +281,22 @@ export function fonteDoContrato(
       await repo.upsertIncome({ ...i, thirteenth: { ...i.thirteenth, considered: considerar } });
       d = null;
     },
-    async cobrirFuro() {
+    async antecipar(itemId, ultimas) {
+      if (!(ultimas >= 1)) throw new Error('Informe quantas parcelas antecipar.');
+      await repo.saveDecision({
+        alertKey: `serie|${itemId}`,
+        decision: 'pago_antecipado',
+        anticipatedLast: Math.floor(ultimas),
+      });
+      d = null;
+    },
+    async cobrirFuro(emergencia = false) {
       const x = await dados();
       const r = engine.project(x);
       const w = r.windows.find((v) => v.furo);
       if (!w?.furo) return;
       const moves = w.furo.plan
-        .filter((p) => p.pocketId && p.cents > 0 && !p.needsConfirm)
+        .filter((p) => p.pocketId && p.cents > 0 && (emergencia || !p.needsConfirm))
         .map((p) => ({
           id: uid(),
           pocketId: p.pocketId!,

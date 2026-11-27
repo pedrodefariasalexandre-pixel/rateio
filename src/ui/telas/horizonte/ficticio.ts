@@ -322,6 +322,7 @@ export function fonteFicticia(): HorizonteFonte {
     async set13(considerar) {
       d.decimo = { ...d.decimo, considerar };
     },
+    async antecipar() {},
     async cobrirFuro() {
       d.furo = undefined;
     },
